@@ -55,23 +55,34 @@ export class GeminiAdapter implements LLMAdapter {
       ...(this.nivelRazonamiento ? { generationConfig: { thinkingConfig: { thinkingLevel: this.nivelRazonamiento } } } : {}),
     }
 
+    // Reintentos con espera creciente ante saturación temporal del proveedor (429/500/503).
+    const esperas = [1000, 3000, 6000]
     let res: Response
-    try {
-      res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": this.clave },
-        body: JSON.stringify(cuerpo),
-        signal: senal,
-      })
-    } catch (e) {
-      if (e instanceof Error && (e.name === "AbortError" || e.name === "TimeoutError")) throw new ErrorLLM("El modelo tardó demasiado en responder.", "timeout")
-      throw new ErrorLLM("No se pudo conectar con el proveedor del modelo.", "proveedor")
+    for (let intento = 0; ; intento++) {
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": this.clave },
+          body: JSON.stringify(cuerpo),
+          signal: senal,
+        })
+      } catch (e) {
+        if (e instanceof Error && (e.name === "AbortError" || e.name === "TimeoutError")) throw new ErrorLLM("El modelo tardó demasiado en responder.", "timeout")
+        throw new ErrorLLM("No se pudo conectar con el proveedor del modelo.", "proveedor")
+      }
+      const transitorio = res.status === 429 || res.status === 500 || res.status === 503
+      if (!transitorio || intento >= esperas.length) break
+      await res.body?.cancel()
+      console.warn(`[gemini] respuesta ${res.status}; reintento ${intento + 1} de ${esperas.length}`)
+      await new Promise((ok) => setTimeout(ok, esperas[intento]))
+      if (senal?.aborted) throw new ErrorLLM("El modelo tardó demasiado en responder.", "timeout")
     }
 
     if (!res.ok) {
       const detalle = await res.text().catch(() => "")
       if (res.status === 401 || res.status === 403) throw new ErrorLLM("La clave del modelo no es válida o no tiene permisos.", "autenticacion")
       if (res.status === 429) throw new ErrorLLM("Se alcanzó el límite de uso del modelo. Intenta en un minuto.", "limite")
+      if (res.status === 503) throw new ErrorLLM("El modelo está saturado en este momento (alta demanda en Google). Reintenté 3 veces; intenta de nuevo en un minuto.", "limite")
       const msg = (() => {
         try {
           return (JSON.parse(detalle) as { error?: { message?: string } }).error?.message ?? ""
