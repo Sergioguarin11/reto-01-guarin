@@ -72,10 +72,11 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 
 | | |
 |---|---|
-| **Proveedor / modelo** | Google Gemini · `gemini-3.8-flash` (API REST `generateContent`) |
+| **Proveedor / modelo** | Google Gemini · `gemini-3.5-flash` (API REST `generateContent`), configurable con `LLM_MODEL` |
 | **Por qué** | Llamadas a herramientas confiables, baja latencia, nivel gratuito sin tarjeta (suficiente para la prueba y la defensa) |
 | **Por qué no un SDK** | REST directo: una dependencia menos y control explícito de las `thoughtSignature`, que Gemini exige reenviar intactas entre llamadas a herramientas (se guardan en `crudo` dentro del historial) |
 | **Cambio de proveedor** | Implementar `LLMAdapter` (`enviar(sistema, mensajes, herramientas)`) y elegirlo con `LLM_PROVIDER`. El ciclo del agente no cambia |
+| **Lección aplicada** | Empecé con `gemini-3.8-flash`. Durante las pruebas en producción respondió 503 (alta demanda) y luego superó 60 s. Medí la latencia de 5 modelos (3.5-flash respondió en ~2 s; 3.8-flash, timeout) y cambié el modelo **por variable de entorno, sin tocar código**. Además agregué reintentos con espera creciente ante 429/503. |
 
 **Costo estimado por caso procesado.** Un caso completo usa ~5–6 llamadas al modelo (leer → mapear → generar → paquete → resumen). Cada llamada lleva el system prompt (~2.000 tokens) más el historial con los resultados de herramientas, que crece hasta ~6.000 tokens. Estimado: **25.000–40.000 tokens por caso**. El valor real se ve en `tokensSesion`, que devuelve `/api/chat`.
 - En el nivel gratuito de Gemini: **USD 0**.
@@ -140,7 +141,7 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 **Qué descarté de lo propuesto y por qué:**
 - **Azure App Service**: la suscripción tiene cuota 0 de VMs → Container Apps.
 - **Teams o Telegram como canal** (reutilizar mi patrón anterior con Bot Framework): no cumple el requisito de mostrar herramientas y confirmación → chat web.
-- **`gemini-2.5-flash`**: retirado para cuentas nuevas → `gemini-3.8-flash`.
+- **`gemini-2.5-flash`**: retirado para cuentas nuevas. **`gemini-3.8-flash`**: saturado (503 y timeouts) durante las pruebas → `gemini-3.5-flash`, elegido midiendo latencia real.
 - **Que el LLM haga el mapeo o reciba el mapeo completo como argumento**: no es trazable ni reproducible → mapeo determinista y valores leídos del disco.
 - **Confiar solo en `confirmado: true`**: fácil de saltar → validación en el servidor.
 
@@ -154,6 +155,6 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 | *Prompt injection* desde correos de clientes | Medio | El cuerpo libre no llega al modelo; confirmación validada en el servidor; herramientas sin shell ni red |
 | Soportes vencidos que nadie renueva | Medio | Alertas proactivas de vencimiento (la Cámara de Comercio vence cada 30 días) |
 | Sesiones y `out/` en el disco efímero del contenedor | Bajo en piloto, alto en producción | Azure Blob Storage para archivos y Table Storage para sesiones; política de ciclo de vida |
-| Límites o cambios del proveedor (modelos retirados, como pasó con 2.5) | Medio | Adaptador intercambiable, modelo por variable de entorno, reintentos con backoff, segundo proveedor de respaldo |
+| Límites, saturación o retiro de modelos (ocurrió dos veces durante este reto) | Medio | Adaptador intercambiable, modelo por variable de entorno, reintentos con backoff (implementado); en producción, modelo de respaldo automático y segundo proveedor |
 | Acceso público al link | Medio | `ACCESS_KEY`; en producción, SSO con Entra ID y roles |
 | Portales con CAPTCHA, MFA o cambios de layout | Medio | Modo asistido: la persona opera las credenciales y el envío (sección 5) |

@@ -8,7 +8,7 @@ export function crearAdaptador(): LLMAdapter {
   if (proveedor === "gemini") {
     const clave = process.env.GEMINI_API_KEY
     if (!clave) throw new ErrorLLM("Falta la variable de entorno GEMINI_API_KEY.", "configuracion")
-    return new GeminiAdapter(clave, process.env.LLM_MODEL || "gemini-3.8-flash", process.env.LLM_THINKING ?? "low")
+    return new GeminiAdapter(clave, process.env.LLM_MODEL || "gemini-3.5-flash", process.env.LLM_THINKING ?? "low")
   }
   throw new ErrorLLM(`Proveedor no soportado: ${proveedor}. Implementa LLMAdapter en src/llm/.`, "configuracion")
 }
