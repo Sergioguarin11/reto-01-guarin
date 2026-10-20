@@ -2,7 +2,7 @@
 
 Agente conversacional que lee la solicitud de un cliente, llena el formulario desde el repositorio maestro (Excel, PDF o valores para portal) y arma el paquete para firma. **Nunca inventa datos y nunca envía sin confirmación humana.**
 
-- **Link de prueba:** _PENDIENTE (se completa tras el despliegue)_
+- **Link de prueba:** https://agente-proveedor.calmwater-0e4a7472.eastus2.azurecontainerapps.io
 - **Clave de acceso:** no requiere (los topes de uso protegen la clave del modelo).
 - **Planteamiento de la solución:** [SOLUCION.md](SOLUCION.md)
 

@@ -1,6 +1,6 @@
 # SOLUCIÓN · Reto 01 — Agente "Registro como Proveedor"
 
-**Autor:** Sergio Guarín Valencia · **Repositorio:** _PENDIENTE_ · **Link:** _PENDIENTE_
+**Autor:** Sergio Guarín Valencia · **Repositorio:** https://github.com/Sergioguarin11/reto-01-guarin · **Link:** https://agente-proveedor.calmwater-0e4a7472.eastus2.azurecontainerapps.io
 
 ---
 
