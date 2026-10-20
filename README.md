@@ -72,14 +72,21 @@ modulo/                       bonus: agente empaquetado (generado con `bun run m
 Dockerfile                    imagen para Azure Container Apps
 ```
 
-## Despliegue (Azure Container Apps)
+## Despliegue (GitHub Actions + Azure Container Apps)
+
+Cada `push` a `main` ejecuta `.github/workflows/imagen.yml`: verifica tipos, corre `demo.ts`, comprueba que `modulo/` esté sincronizado y publica la imagen en `ghcr.io/sergioguarin11/reto-01-guarin`. Azure Container Apps ejecuta esa imagen. La suscripción de prueba de Azure no permite construir imágenes en Azure (ACR Tasks), por eso la construcción ocurre en GitHub.
 
 ```bash
-az containerapp up -n agente-proveedor -g rg-periferia-reto -l eastus2 \
-  --source . --ingress external --target-port 8080
-az containerapp secret set -n agente-proveedor -g rg-periferia-reto --secrets gemini-key=<CLAVE>
-az containerapp update -n agente-proveedor -g rg-periferia-reto \
-  --set-env-vars GEMINI_API_KEY=secretref:gemini-key LLM_MODEL=gemini-3.8-flash
+read -s K
+az containerapp create -n agente-proveedor -g rg-periferia-reto \
+  --environment prueba-periferia-env \
+  --image ghcr.io/sergioguarin11/reto-01-guarin:latest \
+  --ingress external --target-port 8080 --min-replicas 1 --max-replicas 1 \
+  --secrets gemini-key="$K" \
+  --env-vars GEMINI_API_KEY=secretref:gemini-key LLM_THINKING=low
+unset K
 ```
+
+Para actualizar tras un nuevo `push`: `az containerapp update -n agente-proveedor -g rg-periferia-reto --image ghcr.io/sergioguarin11/reto-01-guarin:<sha>`.
 
 La clave queda como *secret* de Azure: no aparece en el repositorio, la imagen ni los logs.
