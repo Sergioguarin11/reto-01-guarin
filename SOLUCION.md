@@ -72,14 +72,14 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 
 | | |
 |---|---|
-| **Proveedor / modelo** | Google Gemini · `gemini-3.5-flash` (API REST `generateContent`), configurable con `LLM_MODEL` |
+| **Proveedor / modelos** | Google Gemini (API REST `generateContent`) con **rotación de modelos**: `gemini-3-flash-preview` → `gemini-3.5-flash-lite` → `gemini-3.7-flash` → `gemini-3.1-flash-lite` → `gemini-3.5-flash`, configurable con `LLM_MODEL` |
 | **Por qué** | Llamadas a herramientas confiables, baja latencia, nivel gratuito sin tarjeta (suficiente para la prueba y la defensa) |
 | **Por qué no un SDK** | REST directo: una dependencia menos y control explícito de las `thoughtSignature`, que Gemini exige reenviar intactas entre llamadas a herramientas (se guardan en `crudo` dentro del historial) |
 | **Cambio de proveedor** | Implementar `LLMAdapter` (`enviar(sistema, mensajes, herramientas)`) y elegirlo con `LLM_PROVIDER`. El ciclo del agente no cambia |
-| **Lección aplicada** | Empecé con `gemini-3.8-flash`. Durante las pruebas en producción respondió 503 (alta demanda) y luego superó 60 s. Medí la latencia de 5 modelos (3.5-flash respondió en ~2 s; 3.8-flash, timeout) y cambié el modelo **por variable de entorno, sin tocar código**. Además agregué reintentos con espera creciente ante 429/503. |
+| **Lecciones aplicadas** | (1) `gemini-3.8-flash` respondió 503 por alta demanda y superó 60 s: medí la latencia de varios modelos y cambié **por variable de entorno, sin tocar código**. (2) El plan gratuito permite **20 consultas por día y por modelo** (un caso usa 5–6), y lo agotamos en pruebas. Implementé **rotación automática**: ante 429 (cupo), 503 (saturación) o lentitud, el adaptador pasa al siguiente modelo y recuerda hasta cuándo evitar el agotado. Medí qué nombres son alias del mismo modelo (comparten cupo) para que la lista tenga 5 cupos independientes (~15–20 casos al día). (3) Al cambiar de modelo a mitad de conversación, las firmas de razonamiento del modelo anterior se marcan como externas, según la documentación de Gemini. |
 
 **Costo estimado por caso procesado.** Un caso completo usa ~5–6 llamadas al modelo (leer → mapear → generar → paquete → resumen). Cada llamada lleva el system prompt (~2.000 tokens) más el historial con los resultados de herramientas, que crece hasta ~6.000 tokens. Estimado: **25.000–40.000 tokens por caso**. El valor real se ve en `tokensSesion`, que devuelve `/api/chat`.
-- En el nivel gratuito de Gemini: **USD 0**.
+- En el nivel gratuito de Gemini: **USD 0**, con un límite de 20 consultas por día y por modelo (de ahí la rotación).
 - En un modelo "flash" pago (del orden de USD 0,30–0,50 por millón de tokens de entrada): **menos de USD 0,02 por caso**, es decir, menos de USD 0,25 al mes para 12 casos.
 - Infraestructura (Container Apps, escala a cero): centavos al mes con este volumen.
 
@@ -155,6 +155,6 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 | *Prompt injection* desde correos de clientes | Medio | El cuerpo libre no llega al modelo; confirmación validada en el servidor; herramientas sin shell ni red |
 | Soportes vencidos que nadie renueva | Medio | Alertas proactivas de vencimiento (la Cámara de Comercio vence cada 30 días) |
 | Sesiones y `out/` en el disco efímero del contenedor | Bajo en piloto, alto en producción | Azure Blob Storage para archivos y Table Storage para sesiones; política de ciclo de vida |
-| Límites, saturación o retiro de modelos (ocurrió dos veces durante este reto) | Medio | Adaptador intercambiable, modelo por variable de entorno, reintentos con backoff (implementado); en producción, modelo de respaldo automático y segundo proveedor |
+| Límites, saturación o retiro de modelos (ocurrió tres veces durante este reto: modelo retirado, saturación 503 y cupo diario gratuito) | Alto en plan gratuito | Implementado: rotación automática entre 5 modelos con memoria de cupos. **En producción: plan de pago** (USD 0,01–0,02 por caso, límites altos) o Azure OpenAI en el tenant, y un segundo proveedor como respaldo |
 | Acceso público al link | Medio | `ACCESS_KEY`; en producción, SSO con Entra ID y roles |
 | Portales con CAPTCHA, MFA o cambios de layout | Medio | Modo asistido: la persona opera las credenciales y el envío (sección 5) |

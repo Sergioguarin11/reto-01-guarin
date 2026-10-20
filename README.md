@@ -34,7 +34,7 @@ Procesa los 4 casos de `fixtures/reto-01/casos/`, prueba los errores (caso inexi
 |---|---|---|
 | `GEMINI_API_KEY` | Sí (para el chat) | Clave del modelo. Solo en el backend. |
 | `LLM_PROVIDER` | No (`gemini`) | Proveedor del adaptador. |
-| `LLM_MODEL` | No (`gemini-3.5-flash`) | Modelo. |
+| `LLM_MODEL` | No (lista por defecto) | Uno o varios modelos separados por coma, en orden de preferencia. Si uno agota su cupo o está saturado, el agente usa el siguiente. |
 | `LLM_THINKING` | No (`low`) | Nivel de razonamiento de Gemini; `low` reduce la latencia. |
 | `PORT` | No (`3000`) | Puerto HTTP. |
 | `ACCESS_KEY` | No | Si se define, el chat pide esta clave. |
@@ -83,7 +83,7 @@ az containerapp create -n agente-proveedor -g rg-periferia-reto \
   --image ghcr.io/sergioguarin11/reto-01-guarin:latest \
   --ingress external --target-port 8080 --min-replicas 1 --max-replicas 1 \
   --secrets gemini-key="$K" \
-  --env-vars GEMINI_API_KEY=secretref:gemini-key LLM_MODEL=gemini-3.5-flash LLM_THINKING=low LLM_TIMEOUT_MS=90000
+  --env-vars GEMINI_API_KEY=secretref:gemini-key LLM_MODEL=gemini-3-flash-preview,gemini-3.5-flash-lite,gemini-3.7-flash,gemini-3.1-flash-lite,gemini-3.5-flash LLM_THINKING=low LLM_TIMEOUT_MS=90000
 unset K
 ```
 

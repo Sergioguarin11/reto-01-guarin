@@ -117,7 +117,18 @@ async function manejar(req: Request): Promise<Response> {
   if (!autorizado(req)) return json({ error: "Clave de acceso requerida" }, 401)
 
   if (req.method === "GET" && p === "/api/casos") {
-    const casos = (await readdir(join(ROOT, "fixtures", "reto-01", "casos"))).sort()
+    const dir = join(ROOT, "fixtures", "reto-01", "casos")
+    const ids = (await readdir(dir)).sort()
+    const casos = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          const s = JSON.parse(await readFile(join(dir, id, "solicitud.json"), "utf8")) as Record<string, unknown>
+          return { id, cliente: s.cliente, pais: s.pais, formato: s.formato, fecha: s.fecha, asunto: s.asunto }
+        } catch {
+          return { id }
+        }
+      }),
+    )
     return json({ casos })
   }
 

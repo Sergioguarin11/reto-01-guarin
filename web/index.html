@@ -3,100 +3,224 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Registro como Proveedor</title>
+<title>Registro de proveedores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #f6f7f9; --panel: #ffffff; --text: #1b1f24; --muted: #5d6673; --line: #e3e6ea;
-    --accent: #2457d6; --accent-soft: #e8eefc; --ok: #1d7a46; --err: #b42318;
-    --warn-bg: #fff6e0; --warn-line: #e2a72e; --user: #2457d6; --user-text: #fff; --code: #f1f3f5;
+    --papel: #eef2f4;
+    --hoja: #ffffff;
+    --tinta: #1c2b3a;
+    --tinta-suave: #556575;
+    --pauta: #d3dbe1;
+    --sello-rojo: #b3261e;
+    --sello-verde: #2e6b4f;
+    --resaltador: #f6e27a;
+    --resaltador-fondo: #fdf7d6;
+    --foco: #2f5f8f;
+    --usuario: #1c2b3a;
+    --usuario-texto: #f4f7f9;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #111418; --panel: #1a1e24; --text: #e6e8eb; --muted: #9aa3ae; --line: #2b313a;
-      --accent: #7aa2ff; --accent-soft: #1e2a44; --ok: #4cc283; --err: #ff7b72;
-      --warn-bg: #2d2412; --warn-line: #c89530; --user: #3a63d8; --user-text: #fff; --code: #222831;
+      --papel: #141c24;
+      --hoja: #1b2530;
+      --tinta: #e3e9ee;
+      --tinta-suave: #98a6b3;
+      --pauta: #2c3946;
+      --sello-rojo: #ef6a5f;
+      --sello-verde: #5fbf8f;
+      --resaltador: #c9ab2c;
+      --resaltador-fondo: #2b2814;
+      --foco: #7fb0e0;
+      --usuario: #2c3d50;
+      --usuario-texto: #eef3f7;
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .app { display: grid; grid-template-columns: 1fr 300px; height: 100vh; }
-  header { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
-  header h1 { font-size: 16px; margin: 0; }
-  .badge { font-size: 12px; color: var(--muted); border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; }
-  header .spacer { flex: 1; }
-  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 6px 12px; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button:disabled { opacity: .5; cursor: default; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--papel); color: var(--tinta);
+    font: 15px/1.55 "Public Sans", system-ui, -apple-system, sans-serif;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+  /* Estructura */
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto minmax(0, 1fr); height: 100vh; }
+  header {
+    grid-column: 1 / -1; display: flex; align-items: center; gap: 14px;
+    padding: 12px 24px; border-bottom: 1px solid var(--pauta); background: var(--hoja);
+  }
+  header h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  header .modelo { font-size: 13px; color: var(--tinta-suave); }
+  header .espacio { flex: 1; }
+  .boton { border: 1px solid var(--pauta); background: var(--hoja); border-radius: 6px; padding: 7px 14px; font-weight: 500; }
+  .boton:hover { border-color: var(--tinta-suave); }
+  .boton.principal { background: var(--tinta); color: var(--hoja); border-color: var(--tinta); }
+
+  /* Conversación */
   main { display: flex; flex-direction: column; min-height: 0; }
-  #log { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-  .msg { max-width: 820px; padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); }
-  .msg.user { align-self: flex-end; background: var(--user); color: var(--user-text); border-color: var(--user); white-space: pre-wrap; }
-  .msg.err { border-color: var(--err); }
-  .msg.confirm { background: var(--warn-bg); border: 2px solid var(--warn-line); }
-  .confirm-tag { font-size: 12px; font-weight: 600; color: var(--warn-line); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-  .confirm-actions { display: flex; gap: 8px; margin-top: 10px; }
+  #log { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 18px; }
+  .msg { max-width: 760px; }
+  .msg.usuario { align-self: flex-end; background: var(--usuario); color: var(--usuario-texto); padding: 10px 16px; border-radius: 14px 14px 4px 14px; white-space: pre-wrap; max-width: 620px; }
+  .msg.agente { background: var(--hoja); border: 1px solid var(--pauta); border-radius: 4px 14px 14px 14px; padding: 16px 20px; }
+  .msg.agente.error { border-left: 4px solid var(--sello-rojo); }
+  .msg.agente.confirmar { border-left: 4px solid var(--resaltador); }
   .msg p { margin: 0 0 8px; } .msg p:last-child { margin-bottom: 0; }
-  .msg ul { margin: 4px 0 8px; padding-left: 20px; }
-  .msg code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
-  .tools { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-  details.tool { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 13px; }
-  details.tool summary { padding: 6px 10px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-  .tname { font-family: ui-monospace, Menlo, monospace; font-weight: 600; }
-  .tok { color: var(--ok); } .terr { color: var(--err); }
-  .tres { color: var(--muted); }
-  details.tool pre { margin: 0; padding: 8px 10px; border-top: 1px solid var(--line); overflow-x: auto; font-size: 12px; max-height: 260px; }
-  .thinking { color: var(--muted); font-style: italic; }
-  .thinking::after { content: "…"; animation: dots 1.2s infinite; }
-  @keyframes dots { 0% { opacity: .2 } 50% { opacity: 1 } 100% { opacity: .2 } }
-  form { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--line); background: var(--panel); }
-  textarea { flex: 1; resize: none; font: inherit; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); min-height: 44px; max-height: 160px; }
-  aside { border-left: 1px solid var(--line); background: var(--panel); padding: 16px; overflow-y: auto; }
-  aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 8px; }
-  .chips { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-  .chip { text-align: left; font-size: 13px; }
-  .files a { display: block; font-size: 13px; color: var(--accent); text-decoration: none; padding: 2px 0; word-break: break-all; }
-  .files .caso { font-weight: 600; font-size: 13px; margin: 10px 0 4px; }
-  .empty { color: var(--muted); font-size: 13px; }
-  .hint { color: var(--muted); font-size: 13px; text-align: center; margin: auto; max-width: 460px; }
-  @media (max-width: 800px) {
-    .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
-    aside { border-left: 0; border-top: 1px solid var(--line); max-height: 30vh; }
+  .msg ul { margin: 4px 0 10px; padding-left: 20px; }
+  .msg li { margin: 2px 0; }
+  .msg code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: var(--papel); padding: 1px 5px; border-radius: 4px; }
+  .msg hr { border: 0; border-top: 1px solid var(--pauta); margin: 10px 0; }
+  .pregunta { margin: 14px -20px -16px; padding: 14px 20px 16px; background: var(--resaltador-fondo); border-top: 1px solid var(--resaltador); border-radius: 0 0 14px 0; font-weight: 600; }
+  .pregunta .acciones { margin-top: 12px; }
+  .acciones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* Pasos del agente dentro del mensaje */
+  .pasos { list-style: none; margin: 0 0 14px; padding: 0 0 12px; border-bottom: 1px solid var(--pauta); }
+  .pasos li { margin: 0; }
+  .paso summary { list-style: none; display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 4px 0; cursor: pointer; }
+  .paso summary::-webkit-details-marker { display: none; }
+  .paso .marca { font-weight: 700; }
+  .paso .ok { color: var(--sello-verde); }
+  .paso .mal { color: var(--sello-rojo); }
+  .paso .titulo { font-weight: 600; }
+  .paso .detalle { color: var(--tinta-suave); font-size: 13px; display: block; }
+  .paso .tecnico { margin: 6px 0 8px 26px; font-size: 12px; }
+  .paso .tecnico div { color: var(--tinta-suave); margin-bottom: 4px; }
+  .paso pre { margin: 0 0 6px; padding: 8px 10px; background: var(--papel); border-radius: 6px; overflow-x: auto; max-height: 240px; font-size: 12px; }
+
+  .trabajando { color: var(--tinta-suave); padding: 6px 2px; }
+  .trabajando .punto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--tinta-suave); margin-right: 8px; animation: latido 1.2s ease-in-out infinite; }
+  @keyframes latido { 50% { opacity: .25 } }
+
+  /* Bandeja inicial */
+  .bandeja { max-width: 760px; }
+  .bandeja h2 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.015em; }
+  .bandeja > p { margin: 0 0 18px; color: var(--tinta-suave); }
+  .correo { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; width: 100%; text-align: left; background: var(--hoja); border: 1px solid var(--pauta); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
+  .correo:hover { border-color: var(--tinta-suave); }
+  .correo .cliente { font-weight: 600; }
+  .correo .fecha { color: var(--tinta-suave); font-size: 13px; text-align: right; }
+  .correo .asunto { color: var(--tinta-suave); font-size: 14px; }
+  .correo .formato { font-size: 13px; text-align: right; }
+
+  form { display: flex; gap: 10px; padding: 14px 32px 18px; border-top: 1px solid var(--pauta); background: var(--hoja); }
+  textarea { flex: 1; resize: none; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--pauta); background: var(--papel); color: var(--tinta); min-height: 46px; max-height: 160px; }
+
+  /* Expediente */
+  aside { border-left: 1px solid var(--pauta); background: var(--hoja); overflow-y: auto; padding: 22px 22px 28px; position: relative; }
+  .exp-vacio { color: var(--tinta-suave); font-size: 14px; }
+  .exp-vacio strong { color: var(--tinta); display: block; font-size: 16px; margin-bottom: 4px; }
+  .exp-cab .id { font-size: 13px; color: var(--tinta-suave); }
+  .exp-cab h2 { font-size: 19px; line-height: 1.25; margin: 2px 0 4px; letter-spacing: -0.01em; }
+  .exp-cab .meta { font-size: 14px; color: var(--tinta-suave); }
+  .bloque { margin-top: 22px; }
+  .bloque h3 { font-size: 14px; font-weight: 700; margin: 0 0 8px; }
+  .proceso { list-style: none; padding: 0; margin: 0; counter-reset: paso; }
+  .proceso li { counter-increment: paso; display: flex; align-items: center; gap: 10px; padding: 5px 0; color: var(--tinta-suave); font-size: 14px; }
+  .proceso li::before { content: counter(paso); width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--pauta); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+  .proceso li.hecho { color: var(--tinta); }
+  .proceso li.hecho::before { content: "✓"; background: var(--tinta); border-color: var(--tinta); color: var(--hoja); }
+  .proceso li.fallo::before { content: "!"; border-color: var(--sello-rojo); color: var(--sello-rojo); }
+
+  .sello {
+    display: inline-block; margin: 18px 0 4px; padding: 6px 14px 4px;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 22px; letter-spacing: .06em; text-transform: uppercase;
+    border: 3px double currentColor; border-radius: 6px; transform: rotate(-4deg); opacity: .9;
+  }
+  .sello.rojo { color: var(--sello-rojo); }
+  .sello.verde { color: var(--sello-verde); }
+  .sello.nuevo { animation: estampar .35s cubic-bezier(.2, 1.6, .4, 1) both; }
+  @keyframes estampar { from { transform: rotate(-4deg) scale(1.6); opacity: 0 } to { transform: rotate(-4deg) scale(1); opacity: .9 } }
+  .sello-nota { font-size: 13px; color: var(--tinta-suave); margin-top: 10px; }
+
+  .cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--pauta); border: 1px solid var(--pauta); border-radius: 8px; overflow: hidden; }
+  .cifras div { background: var(--hoja); padding: 10px 8px; text-align: center; }
+  .cifras b { display: block; font-size: 22px; line-height: 1.1; }
+  .cifras span { font-size: 12px; color: var(--tinta-suave); }
+  .lista { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  .lista li { padding: 6px 0; border-bottom: 1px solid var(--pauta); }
+  .lista li:last-child { border-bottom: 0; }
+  .lista .nota { display: block; font-size: 12px; color: var(--tinta-suave); }
+  .tag { font-size: 12px; font-weight: 600; padding: 1px 7px; border-radius: 4px; margin-right: 6px; }
+  .tag.rojo { color: var(--sello-rojo); border: 1px solid currentColor; }
+  .tag.amarillo { background: var(--resaltador); color: #1c2b3a; }
+  .tag.gris { color: var(--tinta-suave); border: 1px solid var(--pauta); }
+  .archivos a { display: block; font-size: 14px; color: var(--foco); text-decoration: none; padding: 3px 0; word-break: break-word; }
+  .archivos a:hover { text-decoration: underline; }
+  .archivos .sub { font-size: 13px; color: var(--tinta-suave); margin-top: 8px; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; height: auto; min-height: 100vh; }
+    main { min-height: 60vh; }
+    #log { flex: none; }
+    aside { border-left: 0; border-top: 1px solid var(--pauta); }
+    #log, form { padding-left: 16px; padding-right: 16px; }
+    header { padding: 12px 16px; flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sello.nuevo, .trabajando .punto { animation: none; }
   }
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <h1>Agente · Registro como Proveedor</h1>
-    <span class="badge" id="modelo">conectando…</span>
-    <span class="spacer"></span>
-    <button id="nueva" type="button">Nueva sesión</button>
+    <h1>Registro de proveedores</h1>
+    <span class="modelo" id="modelo">Conectando…</span>
+    <span class="espacio"></span>
+    <button class="boton" id="nueva" type="button">Nueva conversación</button>
   </header>
+
   <main>
-    <div id="log"><div class="hint" id="hint">Elige un caso a la derecha o escribe, por ejemplo: <em>Procesa el caso "ec-corp-andina". No envíes nada todavía.</em></div></div>
+    <div id="log" aria-live="polite"></div>
     <form id="form">
-      <textarea id="input" placeholder="Escribe tu mensaje… (Enter para enviar, Shift+Enter para nueva línea)" rows="1"></textarea>
-      <button class="primary" id="enviar" type="submit">Enviar</button>
+      <label for="input" class="sr" hidden>Mensaje</label>
+      <textarea id="input" rows="1" placeholder="Escribe una instrucción, por ejemplo: procesa el caso hn-agroexport-sula"></textarea>
+      <button class="boton principal" id="enviar" type="submit">Enviar</button>
     </form>
   </main>
-  <aside>
-    <h2>Casos</h2>
-    <div class="chips" id="casos"><span class="empty">Cargando…</span></div>
-    <h2>Archivos generados</h2>
-    <div class="files" id="archivos"><span class="empty">Aún no hay archivos.</span></div>
+
+  <aside id="expediente" aria-label="Expediente del caso">
+    <div class="exp-vacio"><strong>Sin expediente abierto</strong>Elige una solicitud de la bandeja. Aquí verás el avance, los faltantes, los soportes y los archivos para descargar.</div>
   </aside>
 </div>
+
 <script>
 const $ = (id) => document.getElementById(id)
 const store = {
   get(k) { try { return localStorage.getItem(k) } catch { return null } },
   set(k, v) { try { localStorage.setItem(k, v) } catch {} },
-  del(k) { try { localStorage.removeItem(k) } catch {} },
 }
 let sessionId = store.get("sessionId") || crypto.randomUUID()
 store.set("sessionId", sessionId)
 let accessKey = store.get("accessKey") || ""
-const casosVistos = new Set()
+let casos = []
+const PAISES = { CO: "Colombia", EC: "Ecuador", PE: "Perú", PA: "Panamá", HN: "Honduras" }
+const FORMATOS = { xlsx: "Excel", pdf: "PDF", portal: "Portal web" }
+const SOPORTES = { camara_comercio: "Cámara de Comercio", rut: "RUT", certificacion_bancaria: "Certificación bancaria", estados_financieros: "Estados financieros", parafiscales: "Parafiscales y seguridad social", certificado_cumplimiento_tributario: "Certificado de cumplimiento tributario" }
+const nombreSoporte = (t) => SOPORTES[t] || t.replace(/_/g, " ")
+const PASOS = [
+  ["proveedor_leer_solicitud", "Leer la solicitud"],
+  ["proveedor_mapear_campos", "Cruzar campos con el maestro"],
+  ["proveedor_generar_formulario", "Generar el formulario"],
+  ["proveedor_armar_paquete", "Armar el paquete para firma"],
+  ["proveedor_simular_envio", "Envío (con tu confirmación)"],
+]
+const VERBOS = {
+  proveedor_leer_solicitud: "Leyó la solicitud",
+  proveedor_mapear_campos: "Cruzó los campos con el maestro",
+  proveedor_generar_formulario: "Generó el formulario",
+  proveedor_armar_paquete: "Armó el paquete para firma",
+  proveedor_simular_envio: "Simuló el envío",
+}
+
+// Estado del expediente por caso, construido solo con resultados de herramientas.
+const expedientes = {}
+let casoActivo = null
+let selloMostrado = {}
 
 async function api(path, opts = {}) {
   const headers = { "Content-Type": "application/json", ...(accessKey ? { "x-access-key": accessKey } : {}) }
@@ -109,13 +233,13 @@ async function api(path, opts = {}) {
   return res
 }
 
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c])
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c])
 
-/** Markdown mínimo y seguro: se escapa todo y luego se aplican negritas, código y listas. */
 function md(texto) {
-  const inline = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-  const bloques = []
+  const inline = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(^|\s)\*([^*]+)\*(?=\s|$|[.,;:])/g, "$1<em>$2</em>")
+  const out = []
   let lista = null
+  const cerrar = () => { if (lista) { out.push(`<ul>${lista.join("")}</ul>`); lista = null } }
   for (const linea of String(texto).split("\n")) {
     const m = linea.match(/^(\s*)[-*•]\s+(.*)/) || linea.match(/^(\s*)\d+[.)]\s+(.*)/)
     if (m) {
@@ -123,84 +247,188 @@ function md(texto) {
       ;(lista ||= []).push(`<li style="margin-left:${nivel * 18}px">${inline(m[2])}</li>`)
       continue
     }
-    if (lista) { bloques.push(`<ul>${lista.join("")}</ul>`); lista = null }
-    if (linea.trim()) bloques.push(`<p>${inline(linea.replace(/^#+\s*/, ""))}</p>`)
+    cerrar()
+    if (/^\s*-{3,}\s*$/.test(linea)) { out.push("<hr>"); continue }
+    if (linea.trim()) out.push(`<p>${inline(linea.replace(/^#+\s*/, ""))}</p>`)
   }
-  if (lista) bloques.push(`<ul>${lista.join("")}</ul>`)
-  return bloques.join("")
+  cerrar()
+  return out.join("")
 }
 
-function herramientaHtml(t) {
-  return `<details class="tool"><summary><span class="${t.ok ? "tok" : "terr"}">${t.ok ? "✓" : "✗"}</span>
-    <span class="tname">${esc(t.nombre)}</span><span class="tres">${esc(t.resumen || "")}</span></summary>
-    <pre>${esc("args: " + JSON.stringify(t.args, null, 2))}</pre>
-    <pre>${esc("resultado: " + JSON.stringify(t.resultado, null, 2))}</pre></details>`
+/** Separa la pregunta de confirmación del cuerpo para destacarla. */
+function separarPregunta(texto) {
+  const i = texto.search(/❓?\s*Confirmación requerida:/)
+  if (i < 0) return [texto, ""]
+  const p = texto.slice(i).replace(/^❓?\s*Confirmación requerida:\s*/, "")
+  return [texto.slice(0, i).replace(/\n\s*-{3,}\s*$/, ""), p.charAt(0).toUpperCase() + p.slice(1)]
 }
 
-function agregar(evento) {
-  $("hint")?.remove()
+function detallePaso(t) {
+  const d = t.resultado && t.resultado.data
+  if (!t.ok) return t.resumen
+  if (!d) return t.resumen
+  switch (t.nombre) {
+    case "proveedor_leer_solicitud": return `${d.cliente} · ${PAISES[d.pais] || d.pais} · ${FORMATOS[d.formato] || d.formato} · ${d.campos.length} campos`
+    case "proveedor_mapear_campos": return `${d.llenos.length} llenos, ${d.faltantes.length} faltantes, ${d.requiere_confirmacion.length} por confirmar`
+    case "proveedor_generar_formulario": return d.soportado === false ? "Formato no soportado: se prepararon valores para copiar" : d.ruta
+    case "proveedor_armar_paquete": return d.listo_para_firma ? "Listo para firma" : `No listo para firma · ${d.bloqueos.length} bloqueo(s)`
+    case "proveedor_simular_envio": return d.ruta
+    default: return t.resumen
+  }
+}
+
+function pasosHtml(toolCalls) {
+  if (!toolCalls || !toolCalls.length) return ""
+  return `<ol class="pasos">${toolCalls.map((t) => `
+    <li><details class="paso"><summary>
+      <span class="marca ${t.ok ? "ok" : "mal"}" aria-label="${t.ok ? "correcto" : "error"}">${t.ok ? "✓" : "✗"}</span>
+      <span><span class="titulo">${esc(t.ok ? VERBOS[t.nombre] || t.nombre : `No se pudo: ${VERBOS[t.nombre] || t.nombre}`)}</span>
+      <span class="detalle">${esc(detallePaso(t))}</span></span>
+    </summary>
+    <div class="tecnico"><div>Herramienta: <code>${esc(t.nombre)}</code></div>
+      <pre>${esc("argumentos: " + JSON.stringify(t.args, null, 2))}</pre>
+      <pre>${esc("resultado: " + JSON.stringify(t.resultado, null, 2))}</pre></div>
+    </details></li>`).join("")}</ol>`
+}
+
+function agregar(ev) {
   const div = document.createElement("div")
-  if (evento.rol === "usuario") {
-    div.className = "msg user"
-    div.textContent = evento.texto
+  if (ev.rol === "usuario") {
+    div.className = "msg usuario"
+    div.textContent = ev.texto
   } else {
-    div.className = "msg" + (evento.needsConfirmation ? " confirm" : "") + (evento.error ? " err" : "")
-    const tools = (evento.toolCalls || []).map(herramientaHtml).join("")
-    div.innerHTML =
-      (evento.needsConfirmation ? `<div class="confirm-tag">⚠ Se requiere tu confirmación</div>` : "") +
-      (tools ? `<div class="tools">${tools}</div>` : "") + md(evento.texto)
-    if (evento.needsConfirmation && evento.activo) {
+    const [cuerpo, pregunta] = separarPregunta(ev.texto || "")
+    div.className = "msg agente" + (ev.needsConfirmation ? " confirmar" : "") + (ev.error ? " error" : "")
+    div.innerHTML = pasosHtml(ev.toolCalls) + md(cuerpo) + (pregunta && ev.needsConfirmation ? `<div class="pregunta">${md(pregunta)}</div>` : pregunta ? md(pregunta) : "")
+    if (ev.needsConfirmation && ev.activo) {
       const acciones = document.createElement("div")
-      acciones.className = "confirm-actions"
-      acciones.innerHTML = `<button class="primary" type="button">Sí, confirmo</button><button type="button">No</button>`
+      acciones.className = "acciones"
+      acciones.innerHTML = `<button class="boton principal" type="button">Sí, confirmo</button><button class="boton" type="button">No, todavía no</button>`
       const [si, no] = acciones.querySelectorAll("button")
-      si.onclick = () => { acciones.remove(); enviar("Sí, confirmo") }
-      no.onclick = () => { acciones.remove(); enviar("No, todavía no") }
-      div.appendChild(acciones)
+      si.onclick = () => enviar("Sí, confirmo")
+      no.onclick = () => enviar("No, todavía no")
+      ;(div.querySelector(".pregunta") || div).appendChild(acciones)
     }
-    for (const t of evento.toolCalls || []) if (t.args && typeof t.args.caso === "string") casosVistos.add(t.args.caso)
+    actualizarExpediente(ev.toolCalls || [], ev.animar)
   }
   $("log").appendChild(div)
   $("log").scrollTop = $("log").scrollHeight
-  return div
 }
 
-async function refrescarArchivos() {
-  if (!casosVistos.size) return
-  const partes = []
-  for (const caso of [...casosVistos].sort()) {
-    const r = await api(`/api/archivos/${encodeURIComponent(caso)}`)
-    if (!r.ok) continue
-    const { archivos } = await r.json()
-    if (!archivos.length) continue
-    partes.push(`<div class="caso">${esc(caso)}</div>` + archivos.map((a) => `<a href="/out/${encodeURIComponent(caso)}/${a.split("/").map(encodeURIComponent).join("/")}" target="_blank" rel="noopener">${esc(a)}</a>`).join(""))
+// ---------------- Expediente ----------------
+function actualizarExpediente(toolCalls, animar) {
+  for (const t of toolCalls) {
+    const caso = t.args && t.args.caso
+    if (typeof caso !== "string") continue
+    const e = (expedientes[caso] ||= { caso, pasos: {} })
+    e.pasos[t.nombre] = t.ok ? "hecho" : "fallo"
+    const d = t.ok && t.resultado && t.resultado.data
+    if (!d) continue
+    if (t.nombre === "proveedor_leer_solicitud") Object.assign(e, { cliente: d.cliente, pais: d.pais, formato: d.formato, total: d.campos.length })
+    if (t.nombre === "proveedor_mapear_campos") Object.assign(e, { llenos: d.llenos.length, faltantes: d.faltantes, confirmar: d.requiere_confirmacion })
+    if (t.nombre === "proveedor_armar_paquete") { Object.assign(e, { listo: d.listo_para_firma, bloqueos: d.bloqueos, checklist: d.checklist }); delete e.enviado }
+    if (t.nombre === "proveedor_simular_envio") e.enviado = true
+    casoActivo = caso
   }
-  $("archivos").innerHTML = partes.join("") || `<span class="empty">Aún no hay archivos.</span>`
+  if (casoActivo) pintarExpediente(animar)
 }
 
+async function pintarExpediente(animar) {
+  const e = expedientes[casoActivo]
+  if (!e) return
+  const info = casos.find((c) => c.id === e.caso) || {}
+  const cliente = e.cliente || info.cliente || e.caso
+  const pais = e.pais || info.pais
+  const formato = e.formato || info.formato
+  const conSello = typeof e.listo === "boolean"
+  const nuevoSello = conSello && animar && selloMostrado[e.caso] !== e.listo
+  if (conSello) selloMostrado[e.caso] = e.listo
+
+  let archivos = []
+  try {
+    const r = await api(`/api/archivos/${encodeURIComponent(e.caso)}`)
+    if (r.ok) archivos = (await r.json()).archivos
+  } catch {}
+  const enlace = (a) => `<a href="/out/${encodeURIComponent(e.caso)}/${a.split("/").map(encodeURIComponent).join("/")}" target="_blank" rel="noopener">${esc(a.replace(/^paquete\//, ""))}</a>`
+  const principales = archivos.filter((a) => !a.startsWith("paquete/") && a !== "log.jsonl")
+  const paquete = archivos.filter((a) => a.startsWith("paquete/"))
+
+  const ch = e.checklist || {}
+  const soportes = [
+    ...(ch.vencidos || []).map((v) => `<li><span class="tag rojo">Vencido</span>${esc(nombreSoporte(v.tipo))}<span class="nota">Vigente hasta ${esc(v.vigencia_hasta)}</span></li>`),
+    ...(ch.ausentes || []).map((a) => `<li><span class="tag rojo">Ausente</span>${esc(nombreSoporte(a))}</li>`),
+  ]
+  const pendientes = [
+    ...(e.faltantes || []).map((f) => `<li><span class="tag gris">Faltante</span>${esc(f.etiqueta)}<span class="nota">Diligenciar a mano</span></li>`),
+    ...(e.confirmar || []).map((c) => `<li><span class="tag amarillo">Confirmar</span>${esc(c.etiqueta)}<span class="nota">${esc(c.nota || "")}</span></li>`),
+  ]
+
+  $("expediente").innerHTML = `
+    <div class="exp-cab">
+      <div class="id">Expediente ${esc(e.caso)}</div>
+      <h2>${esc(cliente)}</h2>
+      <div class="meta">${esc(PAISES[pais] || pais || "")}${formato ? ` · ${esc(FORMATOS[formato] || formato)}` : ""}</div>
+    </div>
+    ${conSello ? `<div class="sello ${e.listo ? "verde" : "rojo"}${nuevoSello ? " nuevo" : ""}">${e.listo ? "Listo para firma" : "No listo para firma"}</div>
+      <div class="sello-nota">${e.enviado ? "Envío simulado registrado." : e.listo ? "Pendiente de firma del representante legal." : `${(e.bloqueos || []).length} bloqueo(s) por resolver.`}</div>` : ""}
+    <div class="bloque"><h3>Avance</h3><ol class="proceso">
+      ${PASOS.map(([n, t]) => `<li class="${e.pasos[n] || ""}">${t}</li>`).join("")}
+    </ol></div>
+    ${typeof e.llenos === "number" ? `<div class="bloque"><h3>Campos del formulario</h3><div class="cifras">
+      <div><b>${e.llenos}</b><span>llenos</span></div>
+      <div><b>${(e.faltantes || []).length}</b><span>faltantes</span></div>
+      <div><b>${(e.confirmar || []).length}</b><span>por confirmar</span></div></div></div>` : ""}
+    ${pendientes.length ? `<div class="bloque"><h3>Para revisar</h3><ul class="lista">${pendientes.join("")}</ul></div>` : ""}
+    ${soportes.length ? `<div class="bloque"><h3>Soportes por actualizar</h3><ul class="lista">${soportes.join("")}</ul></div>` : ""}
+    ${archivos.length ? `<div class="bloque archivos"><h3>Archivos</h3>${principales.map(enlace).join("")}
+      ${paquete.length ? `<div class="sub">Paquete para firma</div>${paquete.map(enlace).join("")}` : ""}</div>` : ""}
+  `
+}
+
+// ---------------- Bandeja ----------------
+function mostrarBandeja() {
+  const div = document.createElement("div")
+  div.className = "bandeja"
+  div.id = "bandeja"
+  div.innerHTML = `<h2>Bandeja de solicitudes</h2>
+    <p>Elige una solicitud y el agente prepara el formulario y el paquete para firma. Nada se envía sin tu confirmación.</p>
+    ${casos.map((c) => `<button class="correo" type="button" data-caso="${esc(c.id)}">
+      <span class="cliente">${esc(c.cliente || c.id)}</span><span class="fecha">${esc(c.fecha || "")}</span>
+      <span class="asunto">${esc(c.asunto || "")}</span><span class="formato">${esc(PAISES[c.pais] || c.pais || "")} · ${esc(FORMATOS[c.formato] || c.formato || "")}</span>
+    </button>`).join("")}`
+  div.querySelectorAll(".correo").forEach((b) => {
+    b.onclick = () => enviar(`Procesa el caso "${b.dataset.caso}". Dime qué campos quedaron llenos, cuáles faltan, si el paquete está listo para firma y qué soportes debo actualizar. No envíes nada todavía.`)
+  })
+  $("log").appendChild(div)
+}
+
+// ---------------- Envío de mensajes ----------------
 let ocupado = false
 async function enviar(texto) {
   if (ocupado || !texto.trim()) return
   ocupado = true
   $("enviar").disabled = true
-  document.querySelectorAll(".confirm-actions").forEach((n) => n.remove())
+  $("bandeja")?.remove()
+  document.querySelectorAll(".acciones").forEach((n) => n.remove())
   agregar({ rol: "usuario", texto })
-  const pensando = document.createElement("div")
-  pensando.className = "msg thinking"
-  pensando.textContent = "Pensando y usando herramientas"
-  $("log").appendChild(pensando)
+  const espera = document.createElement("div")
+  espera.className = "trabajando"
+  const inicio = Date.now()
+  const pintarEspera = () => { espera.innerHTML = `<span class="punto"></span>El agente está trabajando… ${Math.round((Date.now() - inicio) / 1000)} s` }
+  pintarEspera()
+  const reloj = setInterval(pintarEspera, 1000)
+  $("log").appendChild(espera)
   $("log").scrollTop = $("log").scrollHeight
   try {
     const res = await api("/api/chat", { method: "POST", body: JSON.stringify({ sessionId, message: texto }) })
     const data = await res.json()
-    pensando.remove()
-    if (!res.ok) agregar({ rol: "asistente", texto: `⚠️ ${data.error || "Error del servidor"}`, error: true })
-    else agregar({ rol: "asistente", texto: data.reply, toolCalls: data.toolCalls, needsConfirmation: data.needsConfirmation, error: data.error, activo: true })
-    await refrescarArchivos()
+    if (!res.ok) agregar({ rol: "asistente", texto: data.error || "El servidor no pudo procesar el mensaje.", error: true })
+    else agregar({ rol: "asistente", texto: data.reply, toolCalls: data.toolCalls, needsConfirmation: data.needsConfirmation, error: data.error, activo: true, animar: true })
   } catch {
-    pensando.remove()
-    agregar({ rol: "asistente", texto: "⚠️ No se pudo contactar al servidor. Revisa tu conexión e inténtalo de nuevo.", error: true })
+    agregar({ rol: "asistente", texto: "No hay conexión con el servidor. Revisa tu conexión y vuelve a enviar el mensaje.", error: true })
   } finally {
+    clearInterval(reloj)
+    espera.remove()
     ocupado = false
     $("enviar").disabled = false
     $("input").focus()
@@ -209,32 +437,28 @@ async function enviar(texto) {
 
 $("form").onsubmit = (e) => { e.preventDefault(); const t = $("input").value; $("input").value = ""; enviar(t) }
 $("input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("form").requestSubmit() } })
-$("nueva").onclick = () => { sessionId = crypto.randomUUID(); store.set("sessionId", sessionId); location.reload() }
+$("nueva").onclick = () => { store.set("sessionId", crypto.randomUUID()); location.reload() }
 
 async function iniciar() {
   try {
     const h = await (await fetch("/api/health")).json()
-    $("modelo").textContent = h.llm_configurado ? `${h.provider} · ${h.model}` : "modelo no configurado"
-  } catch { $("modelo").textContent = "sin conexión" }
+    $("modelo").textContent = h.llm_configurado ? `Modelo: ${h.model}` : "Modelo no configurado"
+  } catch { $("modelo").textContent = "Sin conexión con el servidor" }
 
-  const rc = await api("/api/casos")
-  if (rc.ok) {
-    const { casos } = await rc.json()
-    $("casos").innerHTML = ""
-    for (const c of casos) {
-      const b = document.createElement("button")
-      b.className = "chip"; b.type = "button"; b.textContent = c
-      b.onclick = () => { $("input").value = `Procesa el caso "${c}". Dime qué campos quedaron llenos, cuáles faltan, si el paquete está listo para firma y qué soportes debo actualizar. No envíes nada todavía.`; $("input").focus() }
-      $("casos").appendChild(b)
-    }
-  }
+  try {
+    const rc = await api("/api/casos")
+    if (rc.ok) casos = (await rc.json()).casos.map((c) => (typeof c === "string" ? { id: c } : c))
+  } catch {}
 
-  const rs = await api(`/api/sessions/${sessionId}`)
-  if (rs.ok) {
-    const s = await rs.json()
-    s.historial.forEach((ev, i) => agregar({ ...ev, activo: i === s.historial.length - 1 && s.pendienteConfirmacion }))
-    await refrescarArchivos()
-  }
+  let historial = []
+  let pendiente = false
+  try {
+    const rs = await api(`/api/sessions/${sessionId}`)
+    if (rs.ok) { const s = await rs.json(); historial = s.historial; pendiente = s.pendienteConfirmacion }
+  } catch {}
+
+  if (!historial.length) mostrarBandeja()
+  historial.forEach((ev, i) => agregar({ ...ev, activo: pendiente && i === historial.length - 1 }))
 }
 iniciar()
 </script>
