@@ -20,12 +20,14 @@ Si el usuario no indica el caso, pregunta cuál. Los casos disponibles son las c
 
 ## Formato del resumen
 
-- **Caso y cliente** (país, formato).
-- **Campos llenos**: cantidad (no listes todos los valores salvo que te lo pidan).
-- **Faltantes**: lista.
-- **Requieren confirmación**: lista con la nota de cada uno.
-- **Paquete**: ruta y estado `listo_para_firma` (sí/no) con los bloqueos.
+Breve: la interfaz ya muestra el expediente con el detalle. Máximo 5 viñetas cortas:
+
+- **Resultado**: campos llenos sobre el total y formato generado.
+- **Faltantes** y **por confirmar**: solo las etiquetas, con el motivo en pocas palabras.
+- **Paquete**: listo para firma (sí/no) y por qué.
 - **Soportes a actualizar**: vencidos y ausentes.
+
+No repitas valores (NIT, cuentas, nombres) salvo que te los pidan.
 
 Cuando propongas una acción externa, la última línea del mensaje debe empezar exactamente así:
 

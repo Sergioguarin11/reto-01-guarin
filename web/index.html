@@ -9,183 +9,140 @@
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --papel: #eef2f4;
+    --fondo: #f5f7f8;
     --hoja: #ffffff;
     --tinta: #1c2b3a;
-    --tinta-suave: #556575;
-    --pauta: #d3dbe1;
-    --sello-rojo: #b3261e;
-    --sello-verde: #2e6b4f;
-    --resaltador: #f6e27a;
-    --resaltador-fondo: #fdf7d6;
+    --suave: #64717e;
+    --linea: #e1e6ea;
+    --rojo: #b3261e;
+    --verde: #2e6b4f;
+    --ambar: #a86b00;
     --foco: #2f5f8f;
-    --usuario: #1c2b3a;
-    --usuario-texto: #f4f7f9;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --papel: #141c24;
-      --hoja: #1b2530;
-      --tinta: #e3e9ee;
-      --tinta-suave: #98a6b3;
-      --pauta: #2c3946;
-      --sello-rojo: #ef6a5f;
-      --sello-verde: #5fbf8f;
-      --resaltador: #c9ab2c;
-      --resaltador-fondo: #2b2814;
-      --foco: #7fb0e0;
-      --usuario: #2c3d50;
-      --usuario-texto: #eef3f7;
+      --fondo: #12181f; --hoja: #19212a; --tinta: #e3e9ee; --suave: #93a0ac; --linea: #2a3540;
+      --rojo: #ef6a5f; --verde: #5fbf8f; --ambar: #e0b04a; --foco: #7fb0e0;
     }
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
-  body {
-    margin: 0; background: var(--papel); color: var(--tinta);
-    font: 15px/1.55 "Public Sans", system-ui, -apple-system, sans-serif;
-  }
-  button { font: inherit; color: inherit; cursor: pointer; }
-  :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+  body { margin: 0; background: var(--fondo); color: var(--tinta); font: 15px/1.6 "Public Sans", system-ui, -apple-system, sans-serif; }
+  button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
+  :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; border-radius: 4px; }
 
-  /* Estructura */
-  .app { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto minmax(0, 1fr); height: 100vh; }
-  header {
-    grid-column: 1 / -1; display: flex; align-items: center; gap: 14px;
-    padding: 12px 24px; border-bottom: 1px solid var(--pauta); background: var(--hoja);
-  }
-  header h1 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
-  header .modelo { font-size: 13px; color: var(--tinta-suave); }
+  .app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 100vh; }
+  .app.con-caso { grid-template-columns: minmax(0, 1fr) 320px; }
+  header { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 12px; padding: 14px 24px; }
+  header h1 { margin: 0; font-size: 16px; font-weight: 700; }
+  header .modelo { font-size: 13px; color: var(--suave); }
   header .espacio { flex: 1; }
-  .boton { border: 1px solid var(--pauta); background: var(--hoja); border-radius: 6px; padding: 7px 14px; font-weight: 500; }
-  .boton:hover { border-color: var(--tinta-suave); }
+  .enlace { color: var(--suave); font-size: 14px; }
+  .enlace:hover { color: var(--tinta); }
+
+  main { display: flex; flex-direction: column; min-height: 0; }
+  #log { flex: 1; overflow-y: auto; padding: 8px 24px 24px; }
+  .columna { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+
+  .usuario { align-self: flex-end; max-width: 85%; background: var(--tinta); color: var(--hoja); padding: 9px 15px; border-radius: 16px 16px 4px 16px; white-space: pre-wrap; }
+  .agente p { margin: 0 0 8px; } .agente p:last-child { margin-bottom: 0; }
+  .agente ul { margin: 4px 0 8px; padding-left: 20px; }
+  .agente li { margin: 2px 0; }
+  .agente code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: var(--linea); padding: 1px 5px; border-radius: 4px; }
+  .agente.error { color: var(--rojo); }
+
+  .pasos { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 10px; font-size: 13px; color: var(--suave); }
+  .paso { padding: 2px 0; border-bottom: 1px dashed transparent; }
+  .paso:hover, .paso[aria-expanded="true"] { color: var(--tinta); border-bottom-color: var(--suave); }
+  .paso .v { color: var(--verde); font-weight: 700; } .paso .x { color: var(--rojo); font-weight: 700; }
+  .detalle { font-size: 12px; background: var(--hoja); border: 1px solid var(--linea); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; }
+  .detalle div { color: var(--suave); margin-bottom: 6px; }
+  .detalle pre { margin: 0 0 6px; overflow-x: auto; max-height: 220px; white-space: pre-wrap; word-break: break-word; }
+
+  .pregunta { margin-top: 14px; padding-left: 12px; border-left: 3px solid var(--ambar); font-weight: 600; }
+  .acciones { display: flex; gap: 8px; margin-top: 10px; }
+  .boton { border: 1px solid var(--linea); background: var(--hoja); border-radius: 999px; padding: 6px 16px; font-weight: 500; }
+  .boton:hover { border-color: var(--suave); }
   .boton.principal { background: var(--tinta); color: var(--hoja); border-color: var(--tinta); }
 
-  /* Conversación */
-  main { display: flex; flex-direction: column; min-height: 0; }
-  #log { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 18px; }
-  .msg { max-width: 760px; }
-  .msg.usuario { align-self: flex-end; background: var(--usuario); color: var(--usuario-texto); padding: 10px 16px; border-radius: 14px 14px 4px 14px; white-space: pre-wrap; max-width: 620px; }
-  .msg.agente { background: var(--hoja); border: 1px solid var(--pauta); border-radius: 4px 14px 14px 14px; padding: 16px 20px; }
-  .msg.agente.error { border-left: 4px solid var(--sello-rojo); }
-  .msg.agente.confirmar { border-left: 4px solid var(--resaltador); }
-  .msg p { margin: 0 0 8px; } .msg p:last-child { margin-bottom: 0; }
-  .msg ul { margin: 4px 0 10px; padding-left: 20px; }
-  .msg li { margin: 2px 0; }
-  .msg code { font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: var(--papel); padding: 1px 5px; border-radius: 4px; }
-  .msg hr { border: 0; border-top: 1px solid var(--pauta); margin: 10px 0; }
-  .pregunta { margin: 14px -20px -16px; padding: 14px 20px 16px; background: var(--resaltador-fondo); border-top: 1px solid var(--resaltador); border-radius: 0 0 14px 0; font-weight: 600; }
-  .pregunta .acciones { margin-top: 12px; }
-  .acciones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-
-  /* Pasos del agente dentro del mensaje */
-  .pasos { list-style: none; margin: 0 0 14px; padding: 0 0 12px; border-bottom: 1px solid var(--pauta); }
-  .pasos li { margin: 0; }
-  .paso summary { list-style: none; display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 4px 0; cursor: pointer; }
-  .paso summary::-webkit-details-marker { display: none; }
-  .paso .marca { font-weight: 700; }
-  .paso .ok { color: var(--sello-verde); }
-  .paso .mal { color: var(--sello-rojo); }
-  .paso .titulo { font-weight: 600; }
-  .paso .detalle { color: var(--tinta-suave); font-size: 13px; display: block; }
-  .paso .tecnico { margin: 6px 0 8px 26px; font-size: 12px; }
-  .paso .tecnico div { color: var(--tinta-suave); margin-bottom: 4px; }
-  .paso pre { margin: 0 0 6px; padding: 8px 10px; background: var(--papel); border-radius: 6px; overflow-x: auto; max-height: 240px; font-size: 12px; }
-
-  .trabajando { color: var(--tinta-suave); padding: 6px 2px; }
-  .trabajando .punto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--tinta-suave); margin-right: 8px; animation: latido 1.2s ease-in-out infinite; }
+  .trabajando { color: var(--suave); font-size: 14px; }
+  .trabajando::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--suave); margin-right: 8px; vertical-align: middle; animation: latido 1.2s ease-in-out infinite; }
   @keyframes latido { 50% { opacity: .25 } }
 
-  /* Bandeja inicial */
-  .bandeja { max-width: 760px; }
-  .bandeja h2 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.015em; }
-  .bandeja > p { margin: 0 0 18px; color: var(--tinta-suave); }
-  .correo { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; width: 100%; text-align: left; background: var(--hoja); border: 1px solid var(--pauta); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; }
-  .correo:hover { border-color: var(--tinta-suave); }
-  .correo .cliente { font-weight: 600; }
-  .correo .fecha { color: var(--tinta-suave); font-size: 13px; text-align: right; }
-  .correo .asunto { color: var(--tinta-suave); font-size: 14px; }
-  .correo .formato { font-size: 13px; text-align: right; }
+  .bandeja { padding-top: 6vh; }
+  .bandeja h2 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .bandeja > p { color: var(--suave); margin: 0 0 22px; }
+  .solicitud { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; width: 100%; text-align: left; padding: 14px 4px; border-bottom: 1px solid var(--linea); }
+  .solicitud:first-of-type { border-top: 1px solid var(--linea); }
+  .solicitud:hover .cliente { text-decoration: underline; text-underline-offset: 3px; }
+  .solicitud .cliente { font-weight: 600; }
+  .solicitud .meta { color: var(--suave); font-size: 14px; white-space: nowrap; }
 
-  form { display: flex; gap: 10px; padding: 14px 32px 18px; border-top: 1px solid var(--pauta); background: var(--hoja); }
-  textarea { flex: 1; resize: none; font: inherit; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--pauta); background: var(--papel); color: var(--tinta); min-height: 46px; max-height: 160px; }
+  form { padding: 12px 24px 20px; }
+  .caja { max-width: 720px; margin: 0 auto; display: flex; gap: 8px; background: var(--hoja); border: 1px solid var(--linea); border-radius: 14px; padding: 6px 6px 6px 14px; }
+  .caja:focus-within { border-color: var(--suave); }
+  textarea { flex: 1; resize: none; border: 0; outline: 0; font: inherit; background: transparent; color: var(--tinta); padding: 7px 0; min-height: 38px; max-height: 140px; }
+  .caja .boton { align-self: flex-end; }
 
-  /* Expediente */
-  aside { border-left: 1px solid var(--pauta); background: var(--hoja); overflow-y: auto; padding: 22px 22px 28px; position: relative; }
-  .exp-vacio { color: var(--tinta-suave); font-size: 14px; }
-  .exp-vacio strong { color: var(--tinta); display: block; font-size: 16px; margin-bottom: 4px; }
-  .exp-cab .id { font-size: 13px; color: var(--tinta-suave); }
-  .exp-cab h2 { font-size: 19px; line-height: 1.25; margin: 2px 0 4px; letter-spacing: -0.01em; }
-  .exp-cab .meta { font-size: 14px; color: var(--tinta-suave); }
-  .bloque { margin-top: 22px; }
-  .bloque h3 { font-size: 14px; font-weight: 700; margin: 0 0 8px; }
-  .proceso { list-style: none; padding: 0; margin: 0; counter-reset: paso; }
-  .proceso li { counter-increment: paso; display: flex; align-items: center; gap: 10px; padding: 5px 0; color: var(--tinta-suave); font-size: 14px; }
-  .proceso li::before { content: counter(paso); width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--pauta); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
-  .proceso li.hecho { color: var(--tinta); }
-  .proceso li.hecho::before { content: "✓"; background: var(--tinta); border-color: var(--tinta); color: var(--hoja); }
-  .proceso li.fallo::before { content: "!"; border-color: var(--sello-rojo); color: var(--sello-rojo); }
-
+  aside { display: none; padding: 8px 24px 24px; overflow-y: auto; border-left: 1px solid var(--linea); }
+  .con-caso aside { display: block; }
+  .exp h2 { font-size: 18px; line-height: 1.3; margin: 0; }
+  .exp .meta { color: var(--suave); font-size: 14px; }
   .sello {
-    display: inline-block; margin: 18px 0 4px; padding: 6px 14px 4px;
-    font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 22px; letter-spacing: .06em; text-transform: uppercase;
-    border: 3px double currentColor; border-radius: 6px; transform: rotate(-4deg); opacity: .9;
+    display: inline-block; margin: 16px 0 2px; padding: 4px 12px 2px;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 19px; letter-spacing: .06em; text-transform: uppercase;
+    border: 3px double currentColor; border-radius: 6px; transform: rotate(-3deg);
   }
-  .sello.rojo { color: var(--sello-rojo); }
-  .sello.verde { color: var(--sello-verde); }
+  .sello.rojo { color: var(--rojo); } .sello.verde { color: var(--verde); }
   .sello.nuevo { animation: estampar .35s cubic-bezier(.2, 1.6, .4, 1) both; }
-  @keyframes estampar { from { transform: rotate(-4deg) scale(1.6); opacity: 0 } to { transform: rotate(-4deg) scale(1); opacity: .9 } }
-  .sello-nota { font-size: 13px; color: var(--tinta-suave); margin-top: 10px; }
+  @keyframes estampar { from { transform: rotate(-3deg) scale(1.5); opacity: 0 } to { transform: rotate(-3deg) scale(1); opacity: 1 } }
 
-  .cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--pauta); border: 1px solid var(--pauta); border-radius: 8px; overflow: hidden; }
-  .cifras div { background: var(--hoja); padding: 10px 8px; text-align: center; }
-  .cifras b { display: block; font-size: 22px; line-height: 1.1; }
-  .cifras span { font-size: 12px; color: var(--tinta-suave); }
-  .lista { list-style: none; padding: 0; margin: 0; font-size: 14px; }
-  .lista li { padding: 6px 0; border-bottom: 1px solid var(--pauta); }
-  .lista li:last-child { border-bottom: 0; }
-  .lista .nota { display: block; font-size: 12px; color: var(--tinta-suave); }
-  .tag { font-size: 12px; font-weight: 600; padding: 1px 7px; border-radius: 4px; margin-right: 6px; }
-  .tag.rojo { color: var(--sello-rojo); border: 1px solid currentColor; }
-  .tag.amarillo { background: var(--resaltador); color: #1c2b3a; }
-  .tag.gris { color: var(--tinta-suave); border: 1px solid var(--pauta); }
-  .archivos a { display: block; font-size: 14px; color: var(--foco); text-decoration: none; padding: 3px 0; word-break: break-word; }
+  .avance { display: flex; gap: 6px; margin: 18px 0 4px; }
+  .avance span { flex: 1; height: 4px; border-radius: 2px; background: var(--linea); }
+  .avance span.hecho { background: var(--tinta); } .avance span.fallo { background: var(--rojo); }
+  .avance-texto { font-size: 13px; color: var(--suave); }
+
+  .exp h3 { font-size: 13px; font-weight: 600; color: var(--suave); margin: 24px 0 6px; }
+  .pend { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  .pend li { display: grid; grid-template-columns: 10px 1fr; gap: 8px; padding: 5px 0; }
+  .pend li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; margin-top: 8px; background: var(--suave); }
+  .pend li.rojo::before { background: var(--rojo); } .pend li.ambar::before { background: var(--ambar); }
+  .pend small { display: block; color: var(--suave); font-size: 12px; line-height: 1.4; }
+  .ninguno { font-size: 14px; color: var(--suave); }
+  .archivos a { display: block; font-size: 14px; color: var(--foco); text-decoration: none; padding: 2px 0; }
   .archivos a:hover { text-decoration: underline; }
-  .archivos .sub { font-size: 13px; color: var(--tinta-suave); margin-top: 8px; }
+  .archivos details summary { font-size: 14px; color: var(--suave); cursor: pointer; padding: 4px 0; }
+  .archivos details a { padding-left: 14px; }
 
-  @media (max-width: 900px) {
-    .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; height: auto; min-height: 100vh; }
-    main { min-height: 60vh; }
-    #log { flex: none; }
-    aside { border-left: 0; border-top: 1px solid var(--pauta); }
-    #log, form { padding-left: 16px; padding-right: 16px; }
-    header { padding: 12px 16px; flex-wrap: wrap; }
+  @media (max-width: 860px) {
+    .app.con-caso { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0, 1fr); height: auto; min-height: 100vh; }
+    .con-caso aside { grid-row: 2; padding-bottom: 8px; border-bottom: 1px solid var(--linea); }
+    .con-caso main { grid-row: 3; min-height: 70vh; }
+    #log, form, header, aside { padding-left: 16px; padding-right: 16px; }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .sello.nuevo, .trabajando .punto { animation: none; }
-  }
+  @media (prefers-reduced-motion: reduce) { .sello.nuevo, .trabajando::before { animation: none; } }
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app">
   <header>
     <h1>Registro de proveedores</h1>
-    <span class="modelo" id="modelo">Conectando…</span>
+    <span class="modelo" id="modelo"></span>
     <span class="espacio"></span>
-    <button class="boton" id="nueva" type="button">Nueva conversación</button>
+    <button class="enlace" id="nueva" type="button">Nueva conversación</button>
   </header>
 
   <main>
-    <div id="log" aria-live="polite"></div>
+    <div id="log" aria-live="polite"><div class="columna" id="columna"></div></div>
     <form id="form">
-      <label for="input" class="sr" hidden>Mensaje</label>
-      <textarea id="input" rows="1" placeholder="Escribe una instrucción, por ejemplo: procesa el caso hn-agroexport-sula"></textarea>
-      <button class="boton principal" id="enviar" type="submit">Enviar</button>
+      <div class="caja">
+        <textarea id="input" rows="1" aria-label="Mensaje para el agente" placeholder="Escribe una instrucción…"></textarea>
+        <button class="boton principal" id="enviar" type="submit">Enviar</button>
+      </div>
     </form>
   </main>
 
-  <aside id="expediente" aria-label="Expediente del caso">
-    <div class="exp-vacio"><strong>Sin expediente abierto</strong>Elige una solicitud de la bandeja. Aquí verás el avance, los faltantes, los soportes y los archivos para descargar.</div>
-  </aside>
+  <aside id="expediente" aria-label="Expediente del caso"></aside>
 </div>
 
 <script>
@@ -198,29 +155,18 @@ let sessionId = store.get("sessionId") || crypto.randomUUID()
 store.set("sessionId", sessionId)
 let accessKey = store.get("accessKey") || ""
 let casos = []
+
 const PAISES = { CO: "Colombia", EC: "Ecuador", PE: "Perú", PA: "Panamá", HN: "Honduras" }
 const FORMATOS = { xlsx: "Excel", pdf: "PDF", portal: "Portal web" }
-const SOPORTES = { camara_comercio: "Cámara de Comercio", rut: "RUT", certificacion_bancaria: "Certificación bancaria", estados_financieros: "Estados financieros", parafiscales: "Parafiscales y seguridad social", certificado_cumplimiento_tributario: "Certificado de cumplimiento tributario" }
+const SOPORTES = { camara_comercio: "Cámara de Comercio", rut: "RUT", certificacion_bancaria: "Certificación bancaria", estados_financieros: "Estados financieros", parafiscales: "Parafiscales", certificado_cumplimiento_tributario: "Certificado de cumplimiento tributario" }
 const nombreSoporte = (t) => SOPORTES[t] || t.replace(/_/g, " ")
-const PASOS = [
-  ["proveedor_leer_solicitud", "Leer la solicitud"],
-  ["proveedor_mapear_campos", "Cruzar campos con el maestro"],
-  ["proveedor_generar_formulario", "Generar el formulario"],
-  ["proveedor_armar_paquete", "Armar el paquete para firma"],
-  ["proveedor_simular_envio", "Envío (con tu confirmación)"],
-]
-const VERBOS = {
-  proveedor_leer_solicitud: "Leyó la solicitud",
-  proveedor_mapear_campos: "Cruzó los campos con el maestro",
-  proveedor_generar_formulario: "Generó el formulario",
-  proveedor_armar_paquete: "Armó el paquete para firma",
-  proveedor_simular_envio: "Simuló el envío",
-}
+const PASOS = ["proveedor_leer_solicitud", "proveedor_mapear_campos", "proveedor_generar_formulario", "proveedor_armar_paquete", "proveedor_simular_envio"]
+const CORTO = { proveedor_leer_solicitud: "Solicitud", proveedor_mapear_campos: "Campos", proveedor_generar_formulario: "Formulario", proveedor_armar_paquete: "Paquete", proveedor_simular_envio: "Envío" }
+const ETAPA = ["Sin iniciar", "Solicitud leída", "Campos cruzados", "Formulario generado", "Paquete armado", "Envío simulado"]
 
-// Estado del expediente por caso, construido solo con resultados de herramientas.
 const expedientes = {}
 let casoActivo = null
-let selloMostrado = {}
+const selloMostrado = {}
 
 async function api(path, opts = {}) {
   const headers = { "Content-Type": "application/json", ...(accessKey ? { "x-access-key": accessKey } : {}) }
@@ -236,7 +182,7 @@ async function api(path, opts = {}) {
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c])
 
 function md(texto) {
-  const inline = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(^|\s)\*([^*]+)\*(?=\s|$|[.,;:])/g, "$1<em>$2</em>")
+  const inline = (t) => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
   const out = []
   let lista = null
   const cerrar = () => { if (lista) { out.push(`<ul>${lista.join("")}</ul>`); lista = null } }
@@ -248,62 +194,52 @@ function md(texto) {
       continue
     }
     cerrar()
-    if (/^\s*-{3,}\s*$/.test(linea)) { out.push("<hr>"); continue }
+    if (/^\s*-{3,}\s*$/.test(linea)) continue
     if (linea.trim()) out.push(`<p>${inline(linea.replace(/^#+\s*/, ""))}</p>`)
   }
   cerrar()
   return out.join("")
 }
 
-/** Separa la pregunta de confirmación del cuerpo para destacarla. */
 function separarPregunta(texto) {
   const i = texto.search(/❓?\s*Confirmación requerida:/)
   if (i < 0) return [texto, ""]
   const p = texto.slice(i).replace(/^❓?\s*Confirmación requerida:\s*/, "")
-  return [texto.slice(0, i).replace(/\n\s*-{3,}\s*$/, ""), p.charAt(0).toUpperCase() + p.slice(1)]
-}
-
-function detallePaso(t) {
-  const d = t.resultado && t.resultado.data
-  if (!t.ok) return t.resumen
-  if (!d) return t.resumen
-  switch (t.nombre) {
-    case "proveedor_leer_solicitud": return `${d.cliente} · ${PAISES[d.pais] || d.pais} · ${FORMATOS[d.formato] || d.formato} · ${d.campos.length} campos`
-    case "proveedor_mapear_campos": return `${d.llenos.length} llenos, ${d.faltantes.length} faltantes, ${d.requiere_confirmacion.length} por confirmar`
-    case "proveedor_generar_formulario": return d.soportado === false ? "Formato no soportado: se prepararon valores para copiar" : d.ruta
-    case "proveedor_armar_paquete": return d.listo_para_firma ? "Listo para firma" : `No listo para firma · ${d.bloqueos.length} bloqueo(s)`
-    case "proveedor_simular_envio": return d.ruta
-    default: return t.resumen
-  }
+  return [texto.slice(0, i), p.charAt(0).toUpperCase() + p.slice(1)]
 }
 
 function pasosHtml(toolCalls) {
   if (!toolCalls || !toolCalls.length) return ""
-  return `<ol class="pasos">${toolCalls.map((t) => `
-    <li><details class="paso"><summary>
-      <span class="marca ${t.ok ? "ok" : "mal"}" aria-label="${t.ok ? "correcto" : "error"}">${t.ok ? "✓" : "✗"}</span>
-      <span><span class="titulo">${esc(t.ok ? VERBOS[t.nombre] || t.nombre : `No se pudo: ${VERBOS[t.nombre] || t.nombre}`)}</span>
-      <span class="detalle">${esc(detallePaso(t))}</span></span>
-    </summary>
-    <div class="tecnico"><div>Herramienta: <code>${esc(t.nombre)}</code></div>
-      <pre>${esc("argumentos: " + JSON.stringify(t.args, null, 2))}</pre>
-      <pre>${esc("resultado: " + JSON.stringify(t.resultado, null, 2))}</pre></div>
-    </details></li>`).join("")}</ol>`
+  return `<div class="pasos">${toolCalls.map((t, i) => `<button type="button" class="paso" aria-expanded="false" data-i="${i}" title="Ver detalle técnico">
+    <span class="${t.ok ? "v" : "x"}">${t.ok ? "✓" : "✗"}</span> ${esc(CORTO[t.nombre] || t.nombre)}</button>`).join("")}</div>`
 }
 
 function agregar(ev) {
   const div = document.createElement("div")
   if (ev.rol === "usuario") {
-    div.className = "msg usuario"
+    div.className = "usuario"
     div.textContent = ev.texto
   } else {
     const [cuerpo, pregunta] = separarPregunta(ev.texto || "")
-    div.className = "msg agente" + (ev.needsConfirmation ? " confirmar" : "") + (ev.error ? " error" : "")
-    div.innerHTML = pasosHtml(ev.toolCalls) + md(cuerpo) + (pregunta && ev.needsConfirmation ? `<div class="pregunta">${md(pregunta)}</div>` : pregunta ? md(pregunta) : "")
+    div.className = "agente" + (ev.error ? " error" : "")
+    div.innerHTML = pasosHtml(ev.toolCalls) + `<div class="det-slot"></div>` + md(cuerpo) +
+      (pregunta ? `<div class="pregunta">${md(pregunta)}</div>` : "")
+    div.querySelectorAll(".paso").forEach((b) => {
+      b.onclick = () => {
+        const abierto = b.getAttribute("aria-expanded") === "true"
+        div.querySelectorAll(".paso").forEach((x) => x.setAttribute("aria-expanded", "false"))
+        const slot = div.querySelector(".det-slot")
+        if (abierto) { slot.innerHTML = ""; return }
+        b.setAttribute("aria-expanded", "true")
+        const t = ev.toolCalls[Number(b.dataset.i)]
+        slot.innerHTML = `<div class="detalle"><div>Herramienta <code>${esc(t.nombre)}</code> · ${esc(t.resumen || "")}</div>
+          <pre>${esc("argumentos: " + JSON.stringify(t.args, null, 2))}</pre><pre>${esc("resultado: " + JSON.stringify(t.resultado, null, 2))}</pre></div>`
+      }
+    })
     if (ev.needsConfirmation && ev.activo) {
       const acciones = document.createElement("div")
       acciones.className = "acciones"
-      acciones.innerHTML = `<button class="boton principal" type="button">Sí, confirmo</button><button class="boton" type="button">No, todavía no</button>`
+      acciones.innerHTML = `<button class="boton principal" type="button">Sí, confirmo</button><button class="boton" type="button">Todavía no</button>`
       const [si, no] = acciones.querySelectorAll("button")
       si.onclick = () => enviar("Sí, confirmo")
       no.onclick = () => enviar("No, todavía no")
@@ -311,24 +247,22 @@ function agregar(ev) {
     }
     actualizarExpediente(ev.toolCalls || [], ev.animar)
   }
-  $("log").appendChild(div)
+  $("columna").appendChild(div)
   $("log").scrollTop = $("log").scrollHeight
 }
 
-// ---------------- Expediente ----------------
 function actualizarExpediente(toolCalls, animar) {
   for (const t of toolCalls) {
     const caso = t.args && t.args.caso
     if (typeof caso !== "string") continue
     const e = (expedientes[caso] ||= { caso, pasos: {} })
     e.pasos[t.nombre] = t.ok ? "hecho" : "fallo"
+    casoActivo = caso
     const d = t.ok && t.resultado && t.resultado.data
     if (!d) continue
     if (t.nombre === "proveedor_leer_solicitud") Object.assign(e, { cliente: d.cliente, pais: d.pais, formato: d.formato, total: d.campos.length })
     if (t.nombre === "proveedor_mapear_campos") Object.assign(e, { llenos: d.llenos.length, faltantes: d.faltantes, confirmar: d.requiere_confirmacion })
-    if (t.nombre === "proveedor_armar_paquete") { Object.assign(e, { listo: d.listo_para_firma, bloqueos: d.bloqueos, checklist: d.checklist }); delete e.enviado }
-    if (t.nombre === "proveedor_simular_envio") e.enviado = true
-    casoActivo = caso
+    if (t.nombre === "proveedor_armar_paquete") { Object.assign(e, { listo: d.listo_para_firma, checklist: d.checklist }); delete e.pasos.proveedor_simular_envio }
   }
   if (casoActivo) pintarExpediente(animar)
 }
@@ -336,73 +270,57 @@ function actualizarExpediente(toolCalls, animar) {
 async function pintarExpediente(animar) {
   const e = expedientes[casoActivo]
   if (!e) return
+  $("app").classList.add("con-caso")
   const info = casos.find((c) => c.id === e.caso) || {}
-  const cliente = e.cliente || info.cliente || e.caso
   const pais = e.pais || info.pais
   const formato = e.formato || info.formato
   const conSello = typeof e.listo === "boolean"
-  const nuevoSello = conSello && animar && selloMostrado[e.caso] !== e.listo
+  const nuevo = conSello && animar && selloMostrado[e.caso] !== e.listo
   if (conSello) selloMostrado[e.caso] = e.listo
+  const hechos = PASOS.filter((p) => e.pasos[p] === "hecho").length
 
   let archivos = []
-  try {
-    const r = await api(`/api/archivos/${encodeURIComponent(e.caso)}`)
-    if (r.ok) archivos = (await r.json()).archivos
-  } catch {}
+  try { const r = await api(`/api/archivos/${encodeURIComponent(e.caso)}`); if (r.ok) archivos = (await r.json()).archivos } catch {}
   const enlace = (a) => `<a href="/out/${encodeURIComponent(e.caso)}/${a.split("/").map(encodeURIComponent).join("/")}" target="_blank" rel="noopener">${esc(a.replace(/^paquete\//, ""))}</a>`
   const principales = archivos.filter((a) => !a.startsWith("paquete/") && a !== "log.jsonl")
   const paquete = archivos.filter((a) => a.startsWith("paquete/"))
 
   const ch = e.checklist || {}
-  const soportes = [
-    ...(ch.vencidos || []).map((v) => `<li><span class="tag rojo">Vencido</span>${esc(nombreSoporte(v.tipo))}<span class="nota">Vigente hasta ${esc(v.vigencia_hasta)}</span></li>`),
-    ...(ch.ausentes || []).map((a) => `<li><span class="tag rojo">Ausente</span>${esc(nombreSoporte(a))}</li>`),
-  ]
   const pendientes = [
-    ...(e.faltantes || []).map((f) => `<li><span class="tag gris">Faltante</span>${esc(f.etiqueta)}<span class="nota">Diligenciar a mano</span></li>`),
-    ...(e.confirmar || []).map((c) => `<li><span class="tag amarillo">Confirmar</span>${esc(c.etiqueta)}<span class="nota">${esc(c.nota || "")}</span></li>`),
+    ...(ch.vencidos || []).map((v) => `<li class="rojo"><span>${esc(nombreSoporte(v.tipo))} vencido<small>Vigente hasta ${esc(v.vigencia_hasta)}</small></span></li>`),
+    ...(ch.ausentes || []).map((a) => `<li class="rojo"><span>Falta ${esc(nombreSoporte(a))}<small>No está en el repositorio</small></span></li>`),
+    ...(e.confirmar || []).map((c) => `<li class="ambar"><span>Confirmar ${esc(c.etiqueta)}<small>${esc(c.nota || "")}</small></span></li>`),
+    ...(e.faltantes || []).map((f) => `<li><span>${esc(f.etiqueta)}<small>Sin dato en el maestro, diligenciar a mano</small></span></li>`),
   ]
 
-  $("expediente").innerHTML = `
-    <div class="exp-cab">
-      <div class="id">Expediente ${esc(e.caso)}</div>
-      <h2>${esc(cliente)}</h2>
-      <div class="meta">${esc(PAISES[pais] || pais || "")}${formato ? ` · ${esc(FORMATOS[formato] || formato)}` : ""}</div>
-    </div>
-    ${conSello ? `<div class="sello ${e.listo ? "verde" : "rojo"}${nuevoSello ? " nuevo" : ""}">${e.listo ? "Listo para firma" : "No listo para firma"}</div>
-      <div class="sello-nota">${e.enviado ? "Envío simulado registrado." : e.listo ? "Pendiente de firma del representante legal." : `${(e.bloqueos || []).length} bloqueo(s) por resolver.`}</div>` : ""}
-    <div class="bloque"><h3>Avance</h3><ol class="proceso">
-      ${PASOS.map(([n, t]) => `<li class="${e.pasos[n] || ""}">${t}</li>`).join("")}
-    </ol></div>
-    ${typeof e.llenos === "number" ? `<div class="bloque"><h3>Campos del formulario</h3><div class="cifras">
-      <div><b>${e.llenos}</b><span>llenos</span></div>
-      <div><b>${(e.faltantes || []).length}</b><span>faltantes</span></div>
-      <div><b>${(e.confirmar || []).length}</b><span>por confirmar</span></div></div></div>` : ""}
-    ${pendientes.length ? `<div class="bloque"><h3>Para revisar</h3><ul class="lista">${pendientes.join("")}</ul></div>` : ""}
-    ${soportes.length ? `<div class="bloque"><h3>Soportes por actualizar</h3><ul class="lista">${soportes.join("")}</ul></div>` : ""}
-    ${archivos.length ? `<div class="bloque archivos"><h3>Archivos</h3>${principales.map(enlace).join("")}
-      ${paquete.length ? `<div class="sub">Paquete para firma</div>${paquete.map(enlace).join("")}` : ""}</div>` : ""}
-  `
+  $("expediente").innerHTML = `<div class="exp">
+    <h2>${esc(e.cliente || info.cliente || e.caso)}</h2>
+    <div class="meta">${esc(PAISES[pais] || pais || "")}${formato ? ` · ${esc(FORMATOS[formato] || formato)}` : ""}</div>
+    ${conSello ? `<div class="sello ${e.listo ? "verde" : "rojo"}${nuevo ? " nuevo" : ""}">${e.listo ? "Listo para firma" : "No listo para firma"}</div>` : ""}
+    <div class="avance" aria-hidden="true">${PASOS.map((p) => `<span class="${e.pasos[p] || ""}"></span>`).join("")}</div>
+    <div class="avance-texto">${ETAPA[hechos]}${typeof e.llenos === "number" ? ` · ${e.llenos} de ${e.total ?? "?"} campos llenos` : ""}</div>
+    ${typeof e.llenos === "number" || conSello ? `<h3>Pendientes</h3>${pendientes.length ? `<ul class="pend">${pendientes.join("")}</ul>` : `<div class="ninguno">Nada pendiente.</div>`}` : ""}
+    ${principales.length || paquete.length ? `<h3>Archivos</h3><div class="archivos">${principales.map(enlace).join("")}
+      ${paquete.length ? `<details><summary>Paquete para firma (${paquete.length})</summary>${paquete.map(enlace).join("")}</details>` : ""}</div>` : ""}
+  </div>`
 }
 
-// ---------------- Bandeja ----------------
 function mostrarBandeja() {
   const div = document.createElement("div")
   div.className = "bandeja"
   div.id = "bandeja"
-  div.innerHTML = `<h2>Bandeja de solicitudes</h2>
-    <p>Elige una solicitud y el agente prepara el formulario y el paquete para firma. Nada se envía sin tu confirmación.</p>
-    ${casos.map((c) => `<button class="correo" type="button" data-caso="${esc(c.id)}">
-      <span class="cliente">${esc(c.cliente || c.id)}</span><span class="fecha">${esc(c.fecha || "")}</span>
-      <span class="asunto">${esc(c.asunto || "")}</span><span class="formato">${esc(PAISES[c.pais] || c.pais || "")} · ${esc(FORMATOS[c.formato] || c.formato || "")}</span>
+  div.innerHTML = `<h2>¿Qué solicitud preparamos?</h2>
+    <p>El agente llena el formulario y arma el paquete para firma. Nada se envía sin tu confirmación.</p>
+    ${casos.map((c) => `<button class="solicitud" type="button" data-caso="${esc(c.id)}">
+      <span class="cliente">${esc(c.cliente || c.id)}</span>
+      <span class="meta">${esc(PAISES[c.pais] || c.pais || "")} · ${esc(FORMATOS[c.formato] || c.formato || "")}</span>
     </button>`).join("")}`
-  div.querySelectorAll(".correo").forEach((b) => {
+  div.querySelectorAll(".solicitud").forEach((b) => {
     b.onclick = () => enviar(`Procesa el caso "${b.dataset.caso}". Dime qué campos quedaron llenos, cuáles faltan, si el paquete está listo para firma y qué soportes debo actualizar. No envíes nada todavía.`)
   })
-  $("log").appendChild(div)
+  $("columna").appendChild(div)
 }
 
-// ---------------- Envío de mensajes ----------------
 let ocupado = false
 async function enviar(texto) {
   if (ocupado || !texto.trim()) return
@@ -414,10 +332,10 @@ async function enviar(texto) {
   const espera = document.createElement("div")
   espera.className = "trabajando"
   const inicio = Date.now()
-  const pintarEspera = () => { espera.innerHTML = `<span class="punto"></span>El agente está trabajando… ${Math.round((Date.now() - inicio) / 1000)} s` }
-  pintarEspera()
-  const reloj = setInterval(pintarEspera, 1000)
-  $("log").appendChild(espera)
+  const pintar = () => { espera.textContent = `Trabajando… ${Math.round((Date.now() - inicio) / 1000)} s` }
+  pintar()
+  const reloj = setInterval(pintar, 1000)
+  $("columna").appendChild(espera)
   $("log").scrollTop = $("log").scrollHeight
   try {
     const res = await api("/api/chat", { method: "POST", body: JSON.stringify({ sessionId, message: texto }) })
@@ -442,21 +360,17 @@ $("nueva").onclick = () => { store.set("sessionId", crypto.randomUUID()); locati
 async function iniciar() {
   try {
     const h = await (await fetch("/api/health")).json()
-    $("modelo").textContent = h.llm_configurado ? `Modelo: ${h.model}` : "Modelo no configurado"
-  } catch { $("modelo").textContent = "Sin conexión con el servidor" }
-
+    $("modelo").textContent = h.llm_configurado ? h.model : "Modelo no configurado"
+  } catch { $("modelo").textContent = "Sin conexión" }
   try {
     const rc = await api("/api/casos")
     if (rc.ok) casos = (await rc.json()).casos.map((c) => (typeof c === "string" ? { id: c } : c))
   } catch {}
-
-  let historial = []
-  let pendiente = false
+  let historial = [], pendiente = false
   try {
     const rs = await api(`/api/sessions/${sessionId}`)
     if (rs.ok) { const s = await rs.json(); historial = s.historial; pendiente = s.pendienteConfirmacion }
   } catch {}
-
   if (!historial.length) mostrarBandeja()
   historial.forEach((ev, i) => agregar({ ...ev, activo: pendiente && i === historial.length - 1 }))
 }
