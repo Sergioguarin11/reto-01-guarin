@@ -107,7 +107,7 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 | 4 | **Azure Container Apps** con imagen construida en **GitHub Actions** (publicada en GHCR) | App Service (cuota de VMs en 0 en la suscripción) · Azure Functions · construir en Azure con ACR Tasks (no permitido en suscripción de prueba) | Container Apps no consume esa cuota y sirve el chat y la API en un solo servicio. Construir en GitHub agrega una compuerta de calidad: cada push corre typecheck, `demo.ts` y la verificación del módulo antes de publicar. |
 | 5 | **PDF generado** con pdf-lib (no AcroForm) y **Excel nuevo** con exceljs escrito celda por celda | Rellenar los binarios originales del cliente | Los fixtures traen el mapa de celdas y campos, no los binarios; el PRD acepta PDF generado. Ambas librerías son 100% JS (sin LibreOffice). |
 | 6 | **Envío simulado permitido con bloqueos**, con advertencia explícita en la pregunta y en `ENVIO-SIMULADO.md` | Bloquear el envío si no está `listo_para_firma` | El PRD espera que "envía" produzca el archivo tras confirmación; la decisión es humana y el agente se asegura de que sea informada. En producción lo dejaría configurable. |
-| 7 | **Chat web propio** | Teams o Telegram (el patrón que usé antes en un bot de certificados laborales) | El PRD exige mostrar cada herramienta y resaltar la confirmación; un canal de mensajería no lo permite bien. El ciclo del agente es independiente del canal, así que Teams o Telegram son un adaptador de entrada adicional. |
+| 7 | **Chat web como canal principal + Telegram como canal adicional** | Solo Teams o solo Telegram (el patrón que usé antes en un bot de certificados laborales) | El PRD exige mostrar cada herramienta y resaltar la confirmación, y eso lo cumple el chat web. Para demostrar que el agente no depende del canal, extraje el servicio (`src/servicio.ts`) y agregué Telegram como adaptador de ~200 líneas: mismas herramientas, misma confirmación validada en el servidor (con botones) y entrega de archivos. Teams sería otro adaptador igual. |
 
 ## 7. Supuestos
 
@@ -140,7 +140,7 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 
 **Qué descarté de lo propuesto y por qué:**
 - **Azure App Service**: la suscripción tiene cuota 0 de VMs → Container Apps.
-- **Teams o Telegram como canal** (reutilizar mi patrón anterior con Bot Framework): no cumple el requisito de mostrar herramientas y confirmación → chat web.
+- **Teams o Telegram como único canal** (reutilizar mi patrón anterior con Bot Framework): no cumple el requisito de mostrar herramientas y confirmación → chat web como canal principal y Telegram como canal adicional sobre el mismo servicio.
 - **`gemini-2.5-flash`**: retirado para cuentas nuevas. **`gemini-3.8-flash`**: saturado (503 y timeouts) durante las pruebas → `gemini-3.5-flash`, elegido midiendo latencia real.
 - **Que el LLM haga el mapeo o reciba el mapeo completo como argumento**: no es trazable ni reproducible → mapeo determinista y valores leídos del disco.
 - **Confiar solo en `confirmado: true`**: fácil de saltar → validación en el servidor.

@@ -1,80 +1,18 @@
-// Servidor HTTP (Bun): API del chat + front estático + descarga de archivos generados.
+// Servidor HTTP (Bun): API del chat + front estático + descarga de archivos generados + webhook de Telegram.
 // La clave del modelo solo existe en variables de entorno de este proceso.
-import { readFile, readdir, mkdir, writeFile, stat } from "node:fs/promises"
+import { readdir, stat } from "node:fs/promises"
 import { existsSync } from "node:fs"
 import { join, resolve, relative, sep } from "node:path"
-import { crearAdaptador } from "./llm/index.ts"
-import type { LLMAdapter } from "./llm/adapter.ts"
-import { type Sesion, ejecutarTurno, nuevaSesion } from "./agent.ts"
+import { ROOT, OUT, ID_VALIDO, llm, procesarMensaje, obtenerSesion, listarCasos } from "./servicio.ts"
+import { telegram } from "./canales/telegram.ts"
 
-const ROOT = resolve(import.meta.dir, "..")
-const OUT = join(ROOT, "out")
-const num = (v: string | undefined, d: number) => (v && Number.isFinite(Number(v)) ? Number(v) : d)
+const PUERTO = Number(process.env.PORT) || 3000
+const CLAVE_ACCESO = process.env.ACCESS_KEY ?? ""
 
-const CONFIG = {
-  puerto: num(process.env.PORT, 3000),
-  claveAcceso: process.env.ACCESS_KEY ?? "",
-  limites: {
-    maxIteraciones: num(process.env.MAX_ITERACIONES, 25),
-    maxTokensSesion: num(process.env.MAX_TOKENS_SESION, 300_000),
-    timeoutMs: num(process.env.LLM_TIMEOUT_MS, 60_000),
-  },
-  maxTurnosDia: num(process.env.MAX_TURNOS_DIA, 300),
-  maxLargoMensaje: 4000,
-}
-
-let llm: LLMAdapter | null = null
-let errorLlm = ""
-try {
-  llm = crearAdaptador()
-} catch (e) {
-  errorLlm = e instanceof Error ? e.message : String(e)
-  console.warn(`[servidor] Modelo no configurado: ${errorLlm}`)
-}
-
-// Comportamiento (prompt) + conocimiento: se leen en cada turno para que un cambio no requiera reiniciar.
-async function sistema(): Promise<string> {
-  const [prompt, conocimiento] = await Promise.all([
-    readFile(join(ROOT, "agent", "prompt.md"), "utf8"),
-    readFile(join(ROOT, "src", "knowledge", "registro-proveedor.md"), "utf8"),
-  ])
-  const fecha = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date())
-  return `${prompt}\n\n---\n\n${conocimiento}\n\n---\nFecha de hoy: ${fecha}.`
-}
-
-// --- Sesiones: memoria + respaldo en out/sesiones/ -------------------------------------------
-const sesiones = new Map<string, Sesion>()
-const ocupadas = new Set<string>()
-const ID_VALIDO = /^[A-Za-z0-9-]{8,64}$/
-
-async function obtenerSesion(id: string): Promise<Sesion> {
-  const enMemoria = sesiones.get(id)
-  if (enMemoria) return enMemoria
-  const ruta = join(OUT, "sesiones", `${id}.json`)
-  const s = existsSync(ruta) ? (JSON.parse(await readFile(ruta, "utf8")) as Sesion) : nuevaSesion(id)
-  sesiones.set(id, s)
-  return s
-}
-async function guardarSesion(s: Sesion) {
-  await mkdir(join(OUT, "sesiones"), { recursive: true })
-  await writeFile(join(OUT, "sesiones", `${s.id}.json`), JSON.stringify(s))
-}
-
-// --- Tope global diario para que nadie gaste la clave sin límite -----------------------------
-let turnosHoy = { dia: "", n: 0 }
-function consumirTurno(): boolean {
-  const hoy = new Date().toISOString().slice(0, 10)
-  if (turnosHoy.dia !== hoy) turnosHoy = { dia: hoy, n: 0 }
-  if (turnosHoy.n >= CONFIG.maxTurnosDia) return false
-  turnosHoy.n++
-  return true
-}
-
-// --- Utilidades HTTP -------------------------------------------------------------------------
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { "Content-Type": "application/json; charset=utf-8" } })
 
-const autorizado = (req: Request) => !CONFIG.claveAcceso || req.headers.get("x-access-key") === CONFIG.claveAcceso
+const autorizado = (req: Request) => !CLAVE_ACCESO || req.headers.get("x-access-key") === CLAVE_ACCESO
 
 async function listarArchivos(dir: string, base = dir): Promise<string[]> {
   if (!existsSync(dir)) return []
@@ -103,7 +41,6 @@ async function servirArchivoOut(ruta: string): Promise<Response> {
   return new Response(Bun.file(destino), { headers: { "Content-Type": TIPOS[ext] ?? "application/octet-stream" } })
 }
 
-// --- Rutas -----------------------------------------------------------------------------------
 async function manejar(req: Request): Promise<Response> {
   const url = new URL(req.url)
   const p = url.pathname
@@ -112,25 +49,14 @@ async function manejar(req: Request): Promise<Response> {
     return new Response(Bun.file(join(ROOT, "web", "index.html")), { headers: { "Content-Type": "text/html; charset=utf-8" } })
   }
   if (req.method === "GET" && p === "/api/health") {
-    return json({ ok: true, provider: llm?.proveedor ?? null, model: llm?.modelo ?? null, llm_configurado: !!llm, requiere_clave_acceso: !!CONFIG.claveAcceso })
+    return json({ ok: true, provider: llm?.proveedor ?? null, model: llm?.modelo ?? null, llm_configurado: !!llm, requiere_clave_acceso: !!CLAVE_ACCESO, telegram: telegram.estado() })
   }
+  // Telegram firma cada llamada con su propio secreto; no usa la clave de acceso del chat web.
+  if (req.method === "POST" && p === "/api/telegram/webhook") return telegram.webhook(req)
+
   if (!autorizado(req)) return json({ error: "Clave de acceso requerida" }, 401)
 
-  if (req.method === "GET" && p === "/api/casos") {
-    const dir = join(ROOT, "fixtures", "reto-01", "casos")
-    const ids = (await readdir(dir)).sort()
-    const casos = await Promise.all(
-      ids.map(async (id) => {
-        try {
-          const s = JSON.parse(await readFile(join(dir, id, "solicitud.json"), "utf8")) as Record<string, unknown>
-          return { id, cliente: s.cliente, pais: s.pais, formato: s.formato, fecha: s.fecha, asunto: s.asunto }
-        } catch {
-          return { id }
-        }
-      }),
-    )
-    return json({ casos })
-  }
+  if (req.method === "GET" && p === "/api/casos") return json({ casos: await listarCasos() })
 
   if (req.method === "POST" && p === "/api/chat") {
     let body: { sessionId?: unknown; message?: unknown }
@@ -140,26 +66,14 @@ async function manejar(req: Request): Promise<Response> {
       return json({ error: "El cuerpo debe ser JSON: { sessionId, message }" }, 400)
     }
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : ""
-    const message = typeof body.message === "string" ? body.message.trim() : ""
-    if (!ID_VALIDO.test(sessionId)) return json({ error: "sessionId inválido" }, 400)
-    if (!message || message.length > CONFIG.maxLargoMensaje) return json({ error: `El mensaje debe tener entre 1 y ${CONFIG.maxLargoMensaje} caracteres` }, 400)
-    if (!llm) return json({ reply: `⚠️ El modelo no está configurado en el servidor: ${errorLlm}`, toolCalls: [], needsConfirmation: false, error: true })
-    if (ocupadas.has(sessionId)) return json({ error: "Esta sesión todavía está procesando el mensaje anterior" }, 409)
-    if (!consumirTurno()) return json({ reply: "⚠️ Se alcanzó el tope diario de uso del agente. Intenta mañana.", toolCalls: [], needsConfirmation: false, error: true })
-
-    ocupadas.add(sessionId)
-    try {
-      const sesion = await obtenerSesion(sessionId)
-      const r = await ejecutarTurno(sesion, message, { llm, sistema: await sistema(), directory: ROOT, limites: CONFIG.limites })
-      await guardarSesion(sesion)
-      return json({ sessionId, ...r, tokensSesion: sesion.tokens })
-    } finally {
-      ocupadas.delete(sessionId)
-    }
+    const message = typeof body.message === "string" ? body.message : ""
+    const r = await procesarMensaje(sessionId, message)
+    if ("rechazo" in r) return json({ error: r.rechazo }, r.estado)
+    return json({ sessionId, ...r })
   }
 
   const mSesion = p.match(/^\/api\/sessions\/([A-Za-z0-9-]{8,64})$/)
-  if (req.method === "GET" && mSesion) {
+  if (req.method === "GET" && mSesion && ID_VALIDO.test(mSesion[1] as string)) {
     const s = await obtenerSesion(mSesion[1] as string)
     return json({ id: s.id, creada: s.creada, tokens: s.tokens, pendienteConfirmacion: s.pendienteConfirmacion, historial: s.historial })
   }
@@ -175,7 +89,7 @@ async function manejar(req: Request): Promise<Response> {
 }
 
 Bun.serve({
-  port: CONFIG.puerto,
+  port: PUERTO,
   idleTimeout: 255, // los turnos con varias herramientas pueden tardar
   async fetch(req) {
     try {
@@ -187,4 +101,5 @@ Bun.serve({
   },
 })
 
-console.log(`Agente Registro Proveedor en http://localhost:${CONFIG.puerto} · modelo: ${llm ? `${llm.proveedor}/${llm.modelo}` : "NO CONFIGURADO"}`)
+console.log(`Agente Registro Proveedor en http://localhost:${PUERTO} · modelo: ${llm ? `${llm.proveedor}/${llm.modelo}` : "NO CONFIGURADO"}`)
+await telegram.iniciar()

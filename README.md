@@ -5,6 +5,7 @@ Agente conversacional que lee la solicitud de un cliente, llena el formulario de
 - **Link de prueba:** https://agente-proveedor.calmwater-0e4a7472.eastus2.azurecontainerapps.io
 - **Clave de acceso:** no requiere (los topes de uso protegen la clave del modelo).
 - **Planteamiento de la solución:** [SOLUCION.md](SOLUCION.md)
+- **Backlog del producto (Scrum):** [BACKLOG.md](BACKLOG.md), también cargado en Azure DevOps con `bun run backlog cargar`
 
 ## Requisitos
 
@@ -44,6 +45,16 @@ Procesa los 4 casos de `fixtures/reto-01/casos/`, prueba los errores (caso inexi
 | `LLM_TIMEOUT_MS` | No (`60000`) | Timeout al proveedor. |
 | `FECHA_EJECUCION` | No | Fija la fecha para evaluar vigencias. |
 
+## Canal Telegram (opcional)
+
+El mismo agente atiende por Telegram: el ciclo y las herramientas son los mismos (`src/servicio.ts`); `src/canales/telegram.ts` solo traduce mensajes. Comandos `/casos` y `/nuevo`; la confirmación se hace con botones y el bot envía el formulario, el checklist y la constancia de envío como archivos.
+
+| Variable | Uso |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | Token de @BotFather. Sin él, el canal queda apagado. |
+| `TELEGRAM_USUARIOS` | IDs autorizados separados por coma. Vacío = cualquiera, con los topes diarios del agente. |
+| `TELEGRAM_WEBHOOK_SECRET` + `PUBLIC_URL` | En producción: webhook firmado (Telegram envía el secreto en cada llamada). Sin ellos, el servidor usa *polling* (local, sin URL pública). |
+
 ## API
 
 | Método | Ruta | Descripción |
@@ -54,6 +65,7 @@ Procesa los 4 casos de `fixtures/reto-01/casos/`, prueba los errores (caso inexi
 | `GET` | `/api/casos` | Casos disponibles |
 | `GET` | `/api/archivos/:caso` | Archivos generados del caso |
 | `GET` | `/out/<caso>/<archivo>` | Descarga de un archivo generado |
+| `POST` | `/api/telegram/webhook` | Webhook de Telegram (valida `X-Telegram-Bot-Api-Secret-Token`) |
 
 ## Estructura
 
@@ -65,7 +77,9 @@ src/tools/registro.ts         descubrimiento, validación, ejecución y logs de 
 src/tools/lib/                mapeo, generación de documentos, paquete, utilidades
 src/llm/                      adaptador propio + implementación Gemini
 src/agent.ts                  ciclo del agente (topes, confirmación humana)
-src/server.ts                 API HTTP + front estático
+src/servicio.ts               servicio del agente, independiente del canal (sesiones, topes)
+src/server.ts                 API HTTP + front estático + webhook de Telegram
+src/canales/telegram.ts       canal Telegram (webhook o polling)
 web/index.html                chat (muestra cada herramienta y resalta la confirmación)
 demo.ts                       herramientas sin modelo
 modulo/                       bonus: agente empaquetado (generado con `bun run modulo`)

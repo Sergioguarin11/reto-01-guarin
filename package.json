@@ -9,6 +9,7 @@
     "start": "bun src/server.ts",
     "demo": "bun demo.ts",
     "modulo": "bun scripts/generar-modulo.ts",
+    "backlog": "bun scripts/backlog.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
