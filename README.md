@@ -3,6 +3,7 @@
 Agente conversacional que lee la solicitud de un cliente, llena el formulario desde el repositorio maestro (Excel, PDF o valores para portal) y arma el paquete para firma. **Nunca inventa datos y nunca envía sin confirmación humana.**
 
 - **Link de prueba:** https://agente-proveedor.calmwater-0e4a7472.eastus2.azurecontainerapps.io
+- **Bot de Telegram:** [@periferia_proveedor_sergio_bot](https://t.me/periferia_proveedor_sergio_bot) (mismo agente; escribe `/start`)
 - **Clave de acceso:** no requiere (los topes de uso protegen la clave del modelo).
 - **Planteamiento de la solución:** [SOLUCION.md](SOLUCION.md)
 - **Backlog del producto (Scrum):** [BACKLOG.md](BACKLOG.md), también cargado en Azure DevOps con `bun run backlog cargar`

@@ -1,6 +1,6 @@
 # SOLUCIÓN · Reto 01 — Agente "Registro como Proveedor"
 
-**Autor:** Sergio Guarín Valencia · **Repositorio:** https://github.com/Sergioguarin11/reto-01-guarin · **Link:** https://agente-proveedor.calmwater-0e4a7472.eastus2.azurecontainerapps.io
+**Autor:** Sergio Guarín Valencia · **Repositorio:** https://github.com/Sergioguarin11/reto-01-guarin · **Link:** https://agente-proveedor.calmwater-0e4a7472.eastus2.azurecontainerapps.io · **Telegram:** [@periferia_proveedor_sergio_bot](https://t.me/periferia_proveedor_sergio_bot)
 
 ---
 
@@ -133,17 +133,20 @@ Un cambio de reglas (por ejemplo, Perú pasa a usar otro identificador, o el umb
 
 ## 9. Uso de IA
 
-| Asistente | Para qué |
+| Quién | Para qué |
 |---|---|
-| **Claude (Anthropic), en la app de Claude** | Lectura del PRD y los fixtures, propuesta de arquitectura, generación del código TypeScript, del front y de esta documentación, y guía paso a paso para el despliegue en Azure. |
-| **Yo (revisión y operación)** | Elegí el reto y el stack, revisé el código, ejecuté `demo.ts` y el chat en local, desplegué en Azure, probé el link y validé los resultados contra el PRD. |
+| **Claude (Anthropic), en la app de Claude** | Lectura del PRD y los fixtures, propuesta de arquitectura, generación del código TypeScript (herramientas, ciclo del agente, adaptador, chat web, canal Telegram), de esta documentación y del backlog, y guía paso a paso para GitHub, Azure y Azure DevOps. |
+| **Yo (decisiones de producto, revisión y operación)** | Elegí el reto y el stack. Propuse sumar Telegram como segundo canal (a partir de mi experiencia previa con un bot en Teams) y gestionar el producto con un backlog Scrum en Azure DevOps. Pedí simplificar la interfaz hacia una experiencia minimalista. Ante el límite del plan gratuito de Gemini, elegí la rotación de modelos en lugar del plan de pago para la prueba. Ejecuté `demo.ts` y el chat en local, desplegué en Azure, probé el link y el bot, y validé los resultados contra el PRD. |
 
 **Qué descarté de lo propuesto y por qué:**
 - **Azure App Service**: la suscripción tiene cuota 0 de VMs → Container Apps.
-- **Teams o Telegram como único canal** (reutilizar mi patrón anterior con Bot Framework): no cumple el requisito de mostrar herramientas y confirmación → chat web como canal principal y Telegram como canal adicional sobre el mismo servicio.
-- **`gemini-2.5-flash`**: retirado para cuentas nuevas. **`gemini-3.8-flash`**: saturado (503 y timeouts) durante las pruebas → `gemini-3.5-flash`, elegido midiendo latencia real.
+- **Construir la imagen en Azure (ACR Tasks)**: no permitido en suscripción de prueba → GitHub Actions + GHCR.
+- **Teams o Telegram como único canal**: no cumple el requisito de mostrar herramientas y confirmación → chat web como canal principal y Telegram como canal adicional sobre el mismo servicio.
+- **Un solo modelo fijo**: `gemini-2.5-flash` está retirado para cuentas nuevas, `gemini-3.8-flash` se saturó (503 y timeouts) y el plan gratuito limita a 20 consultas diarias por modelo → rotación automática entre 5 modelos medidos.
+- **Activar el plan de pago de Gemini**: era la opción más confiable, pero preferí no depender de una tarjeta para la prueba; queda como recomendación de producción.
 - **Que el LLM haga el mapeo o reciba el mapeo completo como argumento**: no es trazable ni reproducible → mapeo determinista y valores leídos del disco.
 - **Confiar solo en `confirmado: true`**: fácil de saltar → validación en el servidor.
+- **Recibir solicitudes nuevas escritas en Telegram**: fuera del alcance del PRD y con más riesgo de error → quedó como PBI del backlog.
 
 ## 10. Riesgos de llevarlo a producción
 
